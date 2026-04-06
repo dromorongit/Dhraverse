@@ -1,0 +1,129 @@
+# Dhraverse - Phase 1 Marketplace Foundation
+
+Dhraverse is a premium, scalable marketplace foundation for digital trade. This Phase 1 implementation provides a rock-solid base for future B2B, B2C, and P2P commerce features.
+
+## Features
+
+- **Secure Authentication**: JWT-based login/register with role-based access (Admin, Vendor, Customer)
+- **Protected Dashboards**: Role-specific dashboards for platform management
+- **Premium UI**: Clean, modern design with Tailwind CSS
+- **Database Schema**: Comprehensive Prisma schema for marketplace entities
+- **Middleware Protection**: Route-level security for sensitive areas
+
+## Tech Stack
+
+- **Frontend**: Next.js 14 with App Router, TypeScript
+- **Styling**: Tailwind CSS
+- **Database**: PostgreSQL with Prisma ORM
+- **Authentication**: JWT with bcryptjs password hashing
+- **Deployment**: Railway-ready
+
+## Getting Started
+
+### Prerequisites
+
+- Node.js 18+
+- PostgreSQL database
+
+### Installation
+
+1. Clone the repository:
+   ```bash
+   git clone https://github.com/your-username/dhraverse.git
+   cd dhraverse
+   ```
+
+2. Install dependencies:
+   ```bash
+   npm install
+   ```
+
+3. Set up environment variables:
+   ```bash
+   cp .env.example .env
+   ```
+
+   Edit `.env` with your database URL and JWT secret:
+   ```
+   DATABASE_URL="postgresql://username:password@localhost:5432/dhraverse"
+   JWT_SECRET="your-super-secret-jwt-key-change-this-in-production"
+   ```
+
+4. Set up the database:
+   ```bash
+   npm run db:generate
+   npm run db:migrate
+   npm run db:seed
+   ```
+
+5. Run the development server:
+   ```bash
+   npm run dev
+   ```
+
+   Open [http://localhost:3000](http://localhost:3000) in your browser.
+
+## Seeded Test Accounts
+
+After running the seed script, you can log in with these accounts:
+
+- **Admin**: admin@dhraverse.com / admin123
+- **Vendor**: vendor@dhraverse.com / vendor123
+- **Customer**: customer@dhraverse.com / customer123
+
+## Project Structure
+
+```
+dhraverse/
+├── app/                    # Next.js App Router pages
+│   ├── api/               # API routes
+│   ├── dashboard/         # Protected dashboard pages
+│   ├── login/             # Login page
+│   ├── register/          # Registration page
+│   └── page.tsx           # Homepage
+├── components/            # Reusable UI components
+├── lib/                   # Utility functions
+├── prisma/                # Database schema and seed
+└── middleware.ts          # Route protection
+```
+
+## Available Scripts
+
+- `npm run dev` - Start development server
+- `npm run build` - Build for production
+- `npm run start` - Start production server
+- `npm run lint` - Run ESLint
+- `npm run db:generate` - Generate Prisma client
+- `npm run db:migrate` - Run database migrations
+- `npm run db:push` - Push schema changes
+- `npm run db:seed` - Seed database with test data
+
+## Deployment to Railway
+
+1. Connect your GitHub repository to Railway
+2. Add environment variables in Railway dashboard:
+   - `DATABASE_URL` (Railway provides this)
+   - `JWT_SECRET` (generate a secure random string)
+3. Deploy automatically or manually
+
+## Architecture Notes
+
+- **Modular Design**: Clean separation of concerns across UI, API, and database layers
+- **Type Safety**: Full TypeScript coverage for reliability
+- **Scalable Schema**: Database design prepared for future marketplace expansions
+- **Security First**: Proper authentication, validation, and route protection
+
+## Future Phases
+
+This Phase 1 foundation enables future development of:
+- Product listings and search
+- Shopping cart and checkout
+- Payment integration
+- Order management
+- Vendor store management
+- Customer reviews and ratings
+- Advanced analytics
+
+## License
+
+ISC
