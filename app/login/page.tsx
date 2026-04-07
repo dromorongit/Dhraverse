@@ -40,8 +40,8 @@ export default function LoginPage() {
         const dashboardPath = role === 'ADMIN' ? '/dashboard/admin' :
                              role === 'VENDOR' ? '/dashboard/vendor' :
                              '/dashboard/customer'
-        router.push(dashboardPath)
-        router.refresh()
+        // Use window.location for full page reload to ensure auth state updates
+        window.location.href = dashboardPath
       } else {
         setError(data.error || 'Login failed')
       }
