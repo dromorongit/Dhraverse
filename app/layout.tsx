@@ -6,6 +6,9 @@ import { Footer } from '@/components/Footer'
 export const metadata: Metadata = {
   title: 'Dhraverse - Powering Digital Trade',
   description: 'The Smart Commerce Ecosystem',
+  icons: {
+    icon: '/assets/images/Dhraverselogo.PNG',
+  },
 }
 
 export default function RootLayout({
