@@ -5,17 +5,15 @@ import { verifyToken } from '@/lib/auth-middleware'
 export async function GET(request: NextRequest) {
   try {
     const token = request.cookies.get('token')?.value
-    if (!token) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+    let payload = null
+
+    // Check if user is authenticated
+    if (token) {
+      payload = await verifyToken(token)
     }
 
-    const payload = await verifyToken(token)
-    if (!payload) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
-    }
-
-    // For vendors, get only their products
-    if (payload.role === 'VENDOR') {
+    // For authenticated vendors, get only their products
+    if (payload && payload.role === 'VENDOR') {
       const store = await getPrisma().store.findUnique({
         where: { userId: payload.userId },
         include: {
@@ -35,7 +33,7 @@ export async function GET(request: NextRequest) {
       return NextResponse.json({ products: store.products })
     }
 
-    // For marketplace browsing (public), get all products
+    // For marketplace browsing (public or authenticated non-vendors), get all products
     const products = await getPrisma().product.findMany({
       include: {
         category: true,

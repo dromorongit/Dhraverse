@@ -153,15 +153,13 @@ function MarketplaceContent() {
                     </div>
                   </Link>
                   <div className="p-4">
-                    <Link href={`/marketplace/product/${product.id}`}>
-                      <h3 className="text-lg font-semibold text-gray-900 mb-2 hover:text-blue-600 transition-colors">
-                        {product.name}
-                      </h3>
-                    </Link>
+                    <h3 className="text-lg font-semibold text-gray-900 mb-2">
+                      {product.name}
+                    </h3>
                     <p className="text-gray-600 text-sm mb-2 line-clamp-2">
                       {product.description || 'No description'}
                     </p>
-                    <div className="flex justify-between items-center mb-2">
+                    <div className="flex justify-between items-center mb-3">
                       <span className="text-lg font-bold text-blue-600">
                         {formatPrice(product.price)}
                       </span>
@@ -169,10 +167,15 @@ function MarketplaceContent() {
                         {product.stock > 0 ? `${product.stock} in stock` : 'Out of stock'}
                       </span>
                     </div>
-                    <div className="flex justify-between items-center text-sm text-gray-500">
+                    <div className="flex justify-between items-center text-sm text-gray-500 mb-4">
                       <span>{product.category.name}</span>
                       <span>{product.store.name}</span>
                     </div>
+                    <Link href={`/marketplace/product/${product.id}`}>
+                      <Button className="w-full">
+                        View Details
+                      </Button>
+                    </Link>
                   </div>
                 </CardContent>
               </Card>
