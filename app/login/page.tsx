@@ -35,7 +35,12 @@ export default function LoginPage() {
       const data = await response.json()
 
       if (response.ok) {
-        router.push('/')
+        // Redirect based on user role
+        const role = data.user.role
+        const dashboardPath = role === 'ADMIN' ? '/dashboard/admin' :
+                             role === 'VENDOR' ? '/dashboard/vendor' :
+                             '/dashboard/customer'
+        router.push(dashboardPath)
         router.refresh()
       } else {
         setError(data.error || 'Login failed')
