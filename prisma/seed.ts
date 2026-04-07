@@ -1,7 +1,8 @@
+import "dotenv/config"
 import { PrismaClient } from '@prisma/client'
 import { hashPassword } from '../lib/auth'
 
-const prisma = new PrismaClient()
+const prisma = new PrismaClient({ datasourceUrl: process.env.DATABASE_URL } as any)
 
 async function main() {
   // Create admin user
