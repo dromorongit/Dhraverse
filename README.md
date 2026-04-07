@@ -52,7 +52,7 @@ Dhraverse is a premium, scalable marketplace foundation for digital trade. This 
 4. Set up the database:
    ```bash
    npm run db:generate
-   npm run db:migrate
+   npm run db:push  # Use db:push for Railway; db:migrate for local PostgreSQL
    npm run db:seed
    ```
 
