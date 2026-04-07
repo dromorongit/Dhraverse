@@ -13,11 +13,11 @@ interface Product {
   description: string | null
   price: number
   stock: number
-  category: {
+  category?: {
     id: string
     name: string
   }
-  store: {
+  store?: {
     id: string
     name: string
   }
@@ -74,7 +74,7 @@ function MarketplaceContent() {
   }
 
   const filteredProducts = selectedCategory
-    ? products.filter(product => product.category.id === selectedCategory)
+    ? products.filter(product => product.category?.id === selectedCategory)
     : products
 
   if (loading) {
@@ -168,8 +168,8 @@ function MarketplaceContent() {
                       </span>
                     </div>
                     <div className="flex justify-between items-center text-sm text-gray-500 mb-4">
-                      <span>{product.category.name}</span>
-                      <span>{product.store.name}</span>
+                      <span>{product.category?.name || 'Unknown Category'}</span>
+                      <span>{product.store?.name || 'Unknown Store'}</span>
                     </div>
                     <Link href={`/marketplace/product/${product.id}`}>
                       <Button className="w-full">

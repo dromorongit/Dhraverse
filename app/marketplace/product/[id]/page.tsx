@@ -12,11 +12,11 @@ interface Product {
   description: string | null
   price: number
   stock: number
-  category: {
+  category?: {
     id: string
     name: string
   }
-  store: {
+  store?: {
     id: string
     name: string
   }
@@ -135,7 +135,7 @@ export default function ProductDetail() {
           <div className="space-y-6">
             <div>
               <h1 className="text-3xl font-bold text-gray-900 mb-2">{product.name}</h1>
-              <p className="text-lg text-gray-600 mb-4">by {product.store.name}</p>
+              <p className="text-lg text-gray-600 mb-4">by {product.store?.name || 'Unknown Store'}</p>
               <div className="flex items-center space-x-4 mb-4">
                 <span className="text-3xl font-bold text-blue-600">
                   {formatPrice(product.price)}
@@ -149,7 +149,7 @@ export default function ProductDetail() {
                 </span>
               </div>
               <p className="text-sm text-gray-500 mb-4">
-                Category: {product.category.name}
+                Category: {product.category?.name || 'Unknown Category'}
               </p>
             </div>
 
@@ -165,11 +165,11 @@ export default function ProductDetail() {
                 <div className="space-y-4">
                   <div className="flex justify-between">
                     <span className="text-gray-600">Store:</span>
-                    <span className="font-medium">{product.store.name}</span>
+                    <span className="font-medium">{product.store?.name || 'Unknown Store'}</span>
                   </div>
                   <div className="flex justify-between">
                     <span className="text-gray-600">Category:</span>
-                    <span className="font-medium">{product.category.name}</span>
+                    <span className="font-medium">{product.category?.name || 'Unknown Category'}</span>
                   </div>
                   <div className="flex justify-between">
                     <span className="text-gray-600">Stock:</span>
