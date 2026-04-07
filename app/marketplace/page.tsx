@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, Suspense } from 'react'
 import { useSearchParams } from 'next/navigation'
 import Link from 'next/link'
 import { Card, CardContent } from '@/components/Card'
@@ -33,7 +33,7 @@ interface Category {
   name: string
 }
 
-export default function Marketplace() {
+function MarketplaceContent() {
   const searchParams = useSearchParams()
   const [products, setProducts] = useState<Product[]>([])
   const [categories, setCategories] = useState<Category[]>([])
@@ -181,5 +181,19 @@ export default function Marketplace() {
         )}
       </div>
     </div>
+  )
+}
+
+export default function Marketplace() {
+  return (
+    <Suspense fallback={
+      <div className="min-h-screen bg-gray-50 py-8">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="text-center">Loading marketplace...</div>
+        </div>
+      </div>
+    }>
+      <MarketplaceContent />
+    </Suspense>
   )
 }
