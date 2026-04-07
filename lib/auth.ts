@@ -4,10 +4,6 @@ import { cookies } from 'next/headers'
 
 const JWT_SECRET = process.env.JWT_SECRET
 
-if (!JWT_SECRET) {
-  throw new Error('JWT_SECRET environment variable is required')
-}
-
 export type Role = 'ADMIN' | 'VENDOR' | 'CUSTOMER'
 
 export async function hashPassword(password: string): Promise<string> {
@@ -19,12 +15,18 @@ export async function verifyPassword(password: string, hashedPassword: string): 
 }
 
 export function generateToken(payload: { userId: string; role: Role }): string {
-  return jwt.sign(payload, JWT_SECRET as string, { expiresIn: '7d' })
+  if (!JWT_SECRET) {
+    throw new Error('JWT_SECRET environment variable is required')
+  }
+  return jwt.sign(payload, JWT_SECRET, { expiresIn: '7d' })
 }
 
 export function verifyToken(token: string): { userId: string; role: Role } | null {
+  if (!JWT_SECRET) {
+    throw new Error('JWT_SECRET environment variable is required')
+  }
   try {
-    const decoded = jwt.verify(token, JWT_SECRET as string) as jwt.JwtPayload
+    const decoded = jwt.verify(token, JWT_SECRET) as jwt.JwtPayload
     if (typeof decoded === 'object' && decoded.userId && decoded.role) {
       return { userId: decoded.userId as string, role: decoded.role as Role }
     }
