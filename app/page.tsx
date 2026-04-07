@@ -90,13 +90,20 @@ export default function Home() {
             </p>
           </div>
           <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
-            {['Electronics', 'Services', 'Fashion', 'Home & Garden'].map((category) => (
-              <Card key={category} className="text-center hover:shadow-lg transition-shadow">
-                <CardContent className="pt-6">
-                  <h3 className="text-lg font-semibold text-gray-900 mb-2">{category}</h3>
-                  <p className="text-gray-600 text-sm">Coming soon</p>
-                </CardContent>
-              </Card>
+            {[
+              { name: 'Electronics', id: 'electronics' },
+              { name: 'Services', id: 'services' },
+              { name: 'Fashion', id: 'fashion' },
+              { name: 'Home & Garden', id: '' }
+            ].map((category) => (
+              <Link key={category.name} href={`/marketplace${category.id ? `?category=${category.id}` : ''}`}>
+                <Card className="text-center hover:shadow-lg transition-shadow cursor-pointer">
+                  <CardContent className="pt-6">
+                    <h3 className="text-lg font-semibold text-gray-900 mb-2">{category.name}</h3>
+                    <p className="text-gray-600 text-sm">Browse products</p>
+                  </CardContent>
+                </Card>
+              </Link>
             ))}
           </div>
         </div>
