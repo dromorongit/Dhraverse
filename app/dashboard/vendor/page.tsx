@@ -1,4 +1,5 @@
 import { Card, CardContent, CardHeader } from '@/components/Card'
+import { formatPrice } from '@/lib/currency'
 
 export default function VendorDashboard() {
   return (
@@ -42,7 +43,7 @@ export default function VendorDashboard() {
               <h3 className="text-lg font-semibold text-gray-900">Revenue</h3>
             </CardHeader>
             <CardContent>
-              <p className="text-3xl font-bold text-orange-600">$0</p>
+              <p className="text-3xl font-bold text-orange-600">{formatPrice(0)}</p>
               <p className="text-sm text-gray-600">This month</p>
             </CardContent>
           </Card>
