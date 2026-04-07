@@ -39,8 +39,8 @@ export function Navbar() {
                 <Image
                   src="/assets/images/Dhraverselogo.PNG"
                   alt="Dhraverse Logo"
-                  width={32}
-                  height={32}
+                  width={64}
+                  height={64}
                 />
                 <span className="text-2xl font-bold text-blue-600">Dhraverse</span>
               </Link>
