@@ -10,12 +10,21 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'Email, password, and role are required' }, { status: 400 })
     }
 
+    const normalizedEmail = email.trim().toLowerCase()
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(normalizedEmail)) {
+      return NextResponse.json({ error: 'Invalid email format' }, { status: 400 })
+    }
+
+    if (password.length < 6) {
+      return NextResponse.json({ error: 'Password must be at least 6 characters long' }, { status: 400 })
+    }
+
     if (!['CUSTOMER', 'VENDOR'].includes(role)) {
       return NextResponse.json({ error: 'Invalid role' }, { status: 400 })
     }
 
     const existingUser = await getPrisma().user.findUnique({
-      where: { email },
+      where: { email: normalizedEmail },
     })
 
     if (existingUser) {
@@ -26,7 +35,7 @@ export async function POST(request: NextRequest) {
 
     const user = await getPrisma().user.create({
       data: {
-        email,
+        email: normalizedEmail,
         password: hashedPassword,
         role,
         profile: {

@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { getPrisma } from '@/lib/prisma'
-import { hashPassword, verifyPassword, generateToken, setTokenCookie } from '@/lib/auth'
+import { verifyPassword, generateToken } from '@/lib/auth'
 
 export async function POST(request: NextRequest) {
   try {
@@ -27,7 +27,13 @@ export async function POST(request: NextRequest) {
     const token = generateToken({ userId: user.id, role: user.role })
 
     const response = NextResponse.json({ message: 'Login successful', user: { id: user.id, email: user.email, role: user.role } })
-    setTokenCookie(token)
+    response.cookies.set('token', token, {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === 'production',
+      sameSite: 'strict',
+      maxAge: 60 * 60 * 24 * 7, // 7 days
+      path: '/',
+    })
 
     return response
   } catch (error) {

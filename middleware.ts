@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server'
 import type { NextRequest } from 'next/server'
-import { verifyToken } from './lib/auth'
+import { verifyToken, type Role } from './lib/auth'
 
 export function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl
@@ -13,11 +13,11 @@ export function middleware(request: NextRequest) {
   }
 
   // Check if the current path is protected
-  const requiredRoles = Object.keys(protectedRoutes).find(route =>
+  const protectedRoute = Object.keys(protectedRoutes).find(route =>
     pathname.startsWith(route)
   )
 
-  if (requiredRoles) {
+  if (protectedRoute) {
     const token = request.cookies.get('token')?.value
 
     if (!token) {
@@ -29,8 +29,8 @@ export function middleware(request: NextRequest) {
       return NextResponse.redirect(new URL('/login', request.url))
     }
 
-    const allowedRoles = protectedRoutes[requiredRoles as keyof typeof protectedRoutes]
-    if (!allowedRoles.includes(payload.role as any)) {
+    const allowedRoles = protectedRoutes[protectedRoute as keyof typeof protectedRoutes]
+    if (!allowedRoles.includes(payload.role)) {
       return NextResponse.redirect(new URL('/', request.url))
     }
   }

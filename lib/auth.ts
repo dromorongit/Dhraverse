@@ -2,7 +2,13 @@ import bcrypt from 'bcryptjs'
 import jwt from 'jsonwebtoken'
 import { cookies } from 'next/headers'
 
-const JWT_SECRET = process.env.JWT_SECRET!
+const JWT_SECRET = process.env.JWT_SECRET
+
+if (!JWT_SECRET) {
+  throw new Error('JWT_SECRET environment variable is required')
+}
+
+export type Role = 'ADMIN' | 'VENDOR' | 'CUSTOMER'
 
 export async function hashPassword(password: string): Promise<string> {
   return bcrypt.hash(password, 12)
@@ -12,13 +18,17 @@ export async function verifyPassword(password: string, hashedPassword: string): 
   return bcrypt.compare(password, hashedPassword)
 }
 
-export function generateToken(payload: { userId: string; role: string }): string {
-  return jwt.sign(payload, JWT_SECRET, { expiresIn: '7d' })
+export function generateToken(payload: { userId: string; role: Role }): string {
+  return jwt.sign(payload, JWT_SECRET as string, { expiresIn: '7d' })
 }
 
-export function verifyToken(token: string): { userId: string; role: string } | null {
+export function verifyToken(token: string): { userId: string; role: Role } | null {
   try {
-    return jwt.verify(token, JWT_SECRET) as { userId: string; role: string }
+    const decoded = jwt.verify(token, JWT_SECRET as string) as jwt.JwtPayload
+    if (typeof decoded === 'object' && decoded.userId && decoded.role) {
+      return { userId: decoded.userId as string, role: decoded.role as Role }
+    }
+    return null
   } catch {
     return null
   }
@@ -29,23 +39,9 @@ export function getTokenFromCookies(): string | null {
   return cookieStore.get('token')?.value || null
 }
 
-export function setTokenCookie(token: string) {
-  const cookieStore = cookies()
-  cookieStore.set('token', token, {
-    httpOnly: true,
-    secure: process.env.NODE_ENV === 'production',
-    sameSite: 'strict',
-    maxAge: 60 * 60 * 24 * 7, // 7 days
-    path: '/',
-  })
-}
 
-export function clearTokenCookie() {
-  const cookieStore = cookies()
-  cookieStore.delete('token')
-}
 
-export function getUserFromToken(): { userId: string; role: string } | null {
+export function getUserFromToken(): { userId: string; role: Role } | null {
   const token = getTokenFromCookies()
   if (!token) return null
   return verifyToken(token)
