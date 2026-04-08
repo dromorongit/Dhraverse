@@ -25,12 +25,25 @@ interface OrderItem {
   }
 }
 
+interface VendorMetrics {
+  productCount: number
+  activeOrderCount: number
+  revenue: number
+}
+
 export default function VendorDashboard() {
   const [orderItems, setOrderItems] = useState<OrderItem[]>([])
+  const [metrics, setMetrics] = useState<VendorMetrics>({
+    productCount: 0,
+    activeOrderCount: 0,
+    revenue: 0
+  })
   const [loading, setLoading] = useState(true)
+  const [updatingOrders, setUpdatingOrders] = useState<Set<string>>(new Set())
 
   useEffect(() => {
     fetchVendorOrders()
+    fetchMetrics()
   }, [])
 
   const fetchVendorOrders = async () => {
@@ -42,8 +55,51 @@ export default function VendorDashboard() {
       }
     } catch (error) {
       console.error('Error fetching vendor orders:', error)
+    }
+  }
+
+  const fetchMetrics = async () => {
+    try {
+      const response = await fetch('/api/vendor/metrics')
+      if (response.ok) {
+        const data = await response.json()
+        setMetrics(data)
+      }
+    } catch (error) {
+      console.error('Error fetching vendor metrics:', error)
     } finally {
       setLoading(false)
+    }
+  }
+
+  const updateOrderStatus = async (orderId: string, newStatus: string) => {
+    setUpdatingOrders(prev => new Set(prev).add(orderId))
+    try {
+      const response = await fetch(`/api/vendor/orders/${orderId}`, {
+        method: 'PATCH',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ status: newStatus }),
+      })
+
+      if (response.ok) {
+        // Refresh orders and metrics
+        await fetchVendorOrders()
+        await fetchMetrics()
+      } else {
+        const error = await response.json()
+        alert(error.error || 'Failed to update order status')
+      }
+    } catch (error) {
+      console.error('Error updating order status:', error)
+      alert('Error updating order status')
+    } finally {
+      setUpdatingOrders(prev => {
+        const newSet = new Set(prev)
+        newSet.delete(orderId)
+        return newSet
+      })
     }
   }
   return (
@@ -86,9 +142,9 @@ export default function VendorDashboard() {
             </CardHeader>
             <CardContent>
               <p className="text-3xl font-bold text-orange-600 mb-2">
-                {loading ? '...' : orderItems.filter(item => item.order.status === 'PENDING').length}
+                {loading ? '...' : metrics.activeOrderCount}
               </p>
-              <p className="text-sm text-gray-600">Pending orders</p>
+              <p className="text-sm text-gray-600">Active orders</p>
             </CardContent>
           </Card>
 
@@ -97,8 +153,10 @@ export default function VendorDashboard() {
               <h3 className="text-lg font-semibold text-gray-900">Revenue</h3>
             </CardHeader>
             <CardContent>
-              <p className="text-3xl font-bold text-green-600 mb-2">GH₵ 0.00</p>
-              <p className="text-sm text-gray-600">This month</p>
+              <p className="text-3xl font-bold text-green-600 mb-2">
+                {loading ? '...' : `GH₵ ${metrics.revenue.toFixed(2)}`}
+              </p>
+              <p className="text-sm text-gray-600">Total completed</p>
             </CardContent>
           </Card>
         </div>
@@ -125,15 +183,19 @@ export default function VendorDashboard() {
                       </div>
                       <div className="text-right">
                         <p className="font-semibold">{formatPrice(item.price * item.quantity)}</p>
-                        <span className={`text-xs px-2 py-1 rounded ${
-                          item.order.status === 'PENDING'
-                            ? 'bg-yellow-100 text-yellow-800'
-                            : item.order.status === 'COMPLETED'
-                            ? 'bg-green-100 text-green-800'
-                            : 'bg-red-100 text-red-800'
-                        }`}>
-                          {item.order.status}
-                        </span>
+                        <select
+                          value={item.order.status}
+                          onChange={(e) => updateOrderStatus(item.order.id, e.target.value)}
+                          disabled={updatingOrders.has(item.order.id)}
+                          className="text-xs px-2 py-1 rounded border border-gray-300 disabled:opacity-50"
+                        >
+                          <option value="PENDING">PENDING</option>
+                          <option value="PROCESSING">PROCESSING</option>
+                          <option value="SHIPPED">SHIPPED</option>
+                          <option value="DELIVERED">DELIVERED</option>
+                          <option value="COMPLETED">COMPLETED</option>
+                          <option value="CANCELLED">CANCELLED</option>
+                        </select>
                       </div>
                     </div>
                     <div className="text-sm text-gray-600">
@@ -179,11 +241,11 @@ export default function VendorDashboard() {
                 </div>
                 <div className="flex justify-between">
                   <span className="text-gray-600">Products Listed:</span>
-                  <span className="font-medium">0</span>
+                  <span className="font-medium">{loading ? '...' : metrics.productCount}</span>
                 </div>
                 <div className="flex justify-between">
                   <span className="text-gray-600">Active Orders:</span>
-                  <span className="font-medium">0</span>
+                  <span className="font-medium">{loading ? '...' : metrics.activeOrderCount}</span>
                 </div>
               </div>
             </CardContent>
