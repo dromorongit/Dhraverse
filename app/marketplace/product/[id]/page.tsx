@@ -6,6 +6,14 @@ import { Card, CardContent, CardHeader } from '@/components/Card'
 import { Button } from '@/components/Button'
 import { formatPrice } from '@/lib/currency'
 
+interface CartResponse {
+  cart: {
+    id: string | null
+    items: Array<any>
+    total: number
+  }
+}
+
 interface Product {
   id: string
   name: string
@@ -35,6 +43,7 @@ export default function ProductDetail() {
   const [product, setProduct] = useState<Product | null>(null)
   const [loading, setLoading] = useState(true)
   const [selectedImageIndex, setSelectedImageIndex] = useState(0)
+  const [addingToCart, setAddingToCart] = useState(false)
 
   useEffect(() => {
     fetchProduct()
@@ -56,6 +65,38 @@ export default function ProductDetail() {
       router.push('/marketplace')
     } finally {
       setLoading(false)
+    }
+  }
+
+  const addToCart = async () => {
+    if (!product || addingToCart) return
+
+    setAddingToCart(true)
+    try {
+      const response = await fetch('/api/cart', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          productId: product.id,
+          quantity: 1,
+        }),
+      })
+
+      if (response.ok) {
+        const data: CartResponse = await response.json()
+        alert('Product added to cart!')
+        // Optionally, navigate to cart or update cart count
+      } else {
+        const error = await response.json()
+        alert(error.error || 'Failed to add to cart')
+      }
+    } catch (error) {
+      console.error('Error adding to cart:', error)
+      alert('Error adding to cart')
+    } finally {
+      setAddingToCart(false)
     }
   }
 
@@ -182,14 +223,17 @@ export default function ProductDetail() {
             <div className="space-y-3">
               <Button
                 className="w-full"
-                disabled={product.stock === 0}
+                disabled={product.stock === 0 || addingToCart}
                 size="lg"
+                onClick={addToCart}
               >
-                {product.stock > 0 ? 'Add to Cart' : 'Out of Stock'}
+                {addingToCart
+                  ? 'Adding...'
+                  : product.stock > 0
+                  ? 'Add to Cart'
+                  : 'Out of Stock'
+                }
               </Button>
-              <p className="text-sm text-gray-500 text-center">
-                * Purchase functionality coming soon
-              </p>
             </div>
           </div>
         </div>

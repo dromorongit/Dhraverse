@@ -1,8 +1,51 @@
+'use client'
+
 import Link from 'next/link'
+import { useState, useEffect } from 'react'
 import { Card, CardContent, CardHeader } from '@/components/Card'
 import { Button } from '@/components/Button'
+import { formatPrice } from '@/lib/currency'
+
+interface OrderItem {
+  id: string
+  quantity: number
+  price: number
+  order: {
+    id: string
+    status: string
+    createdAt: string
+    user: {
+      id: string
+      email: string
+    }
+  }
+  product: {
+    id: string
+    name: string
+  }
+}
 
 export default function VendorDashboard() {
+  const [orderItems, setOrderItems] = useState<OrderItem[]>([])
+  const [loading, setLoading] = useState(true)
+
+  useEffect(() => {
+    fetchVendorOrders()
+  }, [])
+
+  const fetchVendorOrders = async () => {
+    try {
+      const response = await fetch('/api/vendor/orders')
+      if (response.ok) {
+        const data = await response.json()
+        setOrderItems(data.orderItems)
+      }
+    } catch (error) {
+      console.error('Error fetching vendor orders:', error)
+    } finally {
+      setLoading(false)
+    }
+  }
   return (
     <div className="min-h-screen bg-gray-50 py-8">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -42,7 +85,9 @@ export default function VendorDashboard() {
               <h3 className="text-lg font-semibold text-gray-900">Orders</h3>
             </CardHeader>
             <CardContent>
-              <p className="text-3xl font-bold text-orange-600 mb-2">0</p>
+              <p className="text-3xl font-bold text-orange-600 mb-2">
+                {loading ? '...' : orderItems.filter(item => item.order.status === 'PENDING').length}
+              </p>
               <p className="text-sm text-gray-600">Pending orders</p>
             </CardContent>
           </Card>
@@ -57,6 +102,49 @@ export default function VendorDashboard() {
             </CardContent>
           </Card>
         </div>
+
+        <Card className="mb-8">
+          <CardHeader>
+            <h3 className="text-lg font-semibold text-gray-900">Recent Orders</h3>
+          </CardHeader>
+          <CardContent>
+            {loading ? (
+              <p className="text-gray-600">Loading orders...</p>
+            ) : orderItems.length === 0 ? (
+              <p className="text-gray-600">No orders yet. Your products will appear here when customers make purchases.</p>
+            ) : (
+              <div className="space-y-4">
+                {orderItems.slice(0, 10).map((item) => (
+                  <div key={item.id} className="border border-gray-200 rounded-lg p-4">
+                    <div className="flex justify-between items-start mb-2">
+                      <div>
+                        <p className="font-semibold">{item.product.name}</p>
+                        <p className="text-sm text-gray-600">
+                          Order #{item.order.id.slice(-8)} • {new Date(item.order.createdAt).toLocaleDateString()}
+                        </p>
+                      </div>
+                      <div className="text-right">
+                        <p className="font-semibold">{formatPrice(item.price * item.quantity)}</p>
+                        <span className={`text-xs px-2 py-1 rounded ${
+                          item.order.status === 'PENDING'
+                            ? 'bg-yellow-100 text-yellow-800'
+                            : item.order.status === 'COMPLETED'
+                            ? 'bg-green-100 text-green-800'
+                            : 'bg-red-100 text-red-800'
+                        }`}>
+                          {item.order.status}
+                        </span>
+                      </div>
+                    </div>
+                    <div className="text-sm text-gray-600">
+                      Quantity: {item.quantity} • Customer: {item.order.user.email}
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
+          </CardContent>
+        </Card>
 
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
           <Card>

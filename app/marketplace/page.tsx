@@ -7,6 +7,14 @@ import { Card, CardContent } from '@/components/Card'
 import { Button } from '@/components/Button'
 import { formatPrice } from '@/lib/currency'
 
+interface CartResponse {
+  cart: {
+    id: string | null
+    items: Array<any>
+    total: number
+  }
+}
+
 interface Product {
   id: string
   name: string
@@ -39,6 +47,7 @@ function MarketplaceContent() {
   const [categories, setCategories] = useState<Category[]>([])
   const [loading, setLoading] = useState(true)
   const [selectedCategory, setSelectedCategory] = useState<string>('')
+  const [addingToCart, setAddingToCart] = useState<Set<string>>(new Set())
 
   useEffect(() => {
     const categoryParam = searchParams.get('category') || ''
@@ -70,6 +79,38 @@ function MarketplaceContent() {
       }
     } catch (error) {
       console.error('Error fetching categories:', error)
+    }
+  }
+
+  const addToCart = async (productId: string) => {
+    setAddingToCart(prev => new Set(prev).add(productId))
+    try {
+      const response = await fetch('/api/cart', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          productId,
+          quantity: 1,
+        }),
+      })
+
+      if (response.ok) {
+        alert('Product added to cart!')
+      } else {
+        const error = await response.json()
+        alert(error.error || 'Failed to add to cart')
+      }
+    } catch (error) {
+      console.error('Error adding to cart:', error)
+      alert('Error adding to cart')
+    } finally {
+      setAddingToCart(prev => {
+        const newSet = new Set(prev)
+        newSet.delete(productId)
+        return newSet
+      })
     }
   }
 
@@ -171,11 +212,25 @@ function MarketplaceContent() {
                       <span>{product.category?.name || 'Unknown Category'}</span>
                       <span>{product.store?.name || 'Unknown Store'}</span>
                     </div>
-                    <Link href={`/marketplace/product/${product.id}`}>
-                      <Button className="w-full">
-                        View Details
+                    <div className="space-y-2">
+                      <Button
+                        className="w-full"
+                        disabled={product.stock === 0 || addingToCart.has(product.id)}
+                        onClick={() => addToCart(product.id)}
+                      >
+                        {addingToCart.has(product.id)
+                          ? 'Adding...'
+                          : product.stock > 0
+                          ? 'Add to Cart'
+                          : 'Out of Stock'
+                        }
                       </Button>
-                    </Link>
+                      <Link href={`/marketplace/product/${product.id}`}>
+                        <Button variant="outline" className="w-full">
+                          View Details
+                        </Button>
+                      </Link>
+                    </div>
                   </div>
                 </CardContent>
               </Card>
