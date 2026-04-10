@@ -80,26 +80,17 @@ export async function PATCH(request: NextRequest, { params }: { params: { orderI
       return NextResponse.json({ error: 'Order not found or not related to your products' }, { status: 404 })
     }
 
-    // Update the order status using raw SQL to avoid Prisma enum issues
-    await getPrisma().$executeRaw`
-      UPDATE "orders" SET status = ${status} WHERE id = ${orderId}
-    `
-
-    // Fetch the updated order
-    const updatedOrder = await getPrisma().$queryRaw<Array<{
-      id: string
-      userId: string
-      total: number
-      status: string
-      createdAt: Date
-      updatedAt: Date
-    }>>`SELECT id, "userId", total, status, "createdAt", "updatedAt" FROM "orders" WHERE id = ${orderId}`
+    // Update the order status using Prisma's regular update method
+    const updatedOrder = await getPrisma().order.update({
+      where: { id: orderId },
+      data: { status: status },
+    })
 
     return NextResponse.json({
       order: {
-        id: updatedOrder[0].id,
-        status: updatedOrder[0].status,
-        updatedAt: updatedOrder[0].updatedAt,
+        id: updatedOrder.id,
+        status: updatedOrder.status,
+        updatedAt: updatedOrder.updatedAt,
       }
     })
   } catch (error) {

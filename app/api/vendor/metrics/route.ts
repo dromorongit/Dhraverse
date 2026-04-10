@@ -43,28 +43,40 @@ export async function GET(request: NextRequest) {
       })
     }
 
-    // Get unique orders using raw SQL - simpler query
-    const activeOrderItems = await getPrisma().$queryRaw<Array<{ orderId: string }>>`
-      SELECT DISTINCT oi."orderId" FROM "orderItems" oi
-      INNER JOIN "orders" o ON oi."orderId" = o.id
-      WHERE oi."productId" = ANY(${productIds}::text[])
-      AND (o.status = 'PENDING' OR o.status = 'PROCESSING' OR o.status = 'SHIPPED' OR o.status = 'DELIVERED')
-    `
+    // Get active orders (PENDING, PROCESSING, SHIPPED, DELIVERED) that contain vendor's products
+    const activeOrders = await getPrisma().order.findMany({
+      where: {
+        items: {
+          some: {
+            productId: { in: productIds }
+          }
+        },
+        status: { in: ['PENDING', 'PROCESSING', 'SHIPPED', 'DELIVERED'] }
+      },
+      select: {
+        id: true
+      }
+    })
 
-    // Count unique active orders
-    const activeOrderIds = Array.from(new Set(activeOrderItems.map(item => item.orderId)))
-    const activeOrderCount = activeOrderIds.length
+    const activeOrderCount = activeOrders.length
 
-    // Calculate revenue from completed orders using raw SQL
-    const completedOrderItems = await getPrisma().$queryRaw<Array<{ total: number }>>`
-      SELECT COALESCE(SUM(oi.price * oi.quantity), 0) as total
-      FROM "orderItems" oi
-      INNER JOIN "orders" o ON oi."orderId" = o.id
-      WHERE oi."productId" = ANY(${productIds}::text[])
-      AND o.status = 'COMPLETED'
-    `
+    // Get completed orders that contain vendor's products and calculate revenue
+    const completedOrders = await getPrisma().orderItem.findMany({
+      where: {
+        productId: { in: productIds },
+        order: {
+          status: 'COMPLETED'
+        }
+      },
+      select: {
+        price: true,
+        quantity: true
+      }
+    })
 
-    const revenue = Number(completedOrderItems[0]?.total) || 0
+    const revenue = completedOrders.reduce((total, item) => {
+      return total + (item.price * item.quantity)
+    }, 0)
 
     return NextResponse.json({
       productCount,
