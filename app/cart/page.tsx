@@ -245,9 +245,11 @@ export default function Cart() {
             <CardContent className="p-6">
               <div className="flex justify-between items-center">
                 <span className="text-xl font-semibold">Total: {formatPrice(cart.total)}</span>
-                <Button onClick={placeOrder} size="lg">
-                  Place Order
-                </Button>
+                <Link href="/checkout">
+                  <Button size="lg">
+                    Proceed to Checkout
+                  </Button>
+                </Link>
               </div>
             </CardContent>
           </Card>

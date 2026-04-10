@@ -24,6 +24,14 @@ enum OrderStatus {
   CANCELLED
 }
 
+enum PaymentStatus {
+  PENDING
+  PAID
+  FAILED
+  CANCELLED
+  REFUNDED
+}
+
 model User {
   id        String   @id @default(cuid())
   email     String   @unique
@@ -32,10 +40,11 @@ model User {
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
-  profile Profile?
-  store   Store?
-  cart    Cart?
-  orders  Order[]
+  profile  Profile?
+  store    Store?
+  cart     Cart?
+  orders   Order[]
+  payments Payment[]
 
   @@map("users")
 }
@@ -63,7 +72,7 @@ model Store {
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
 
-  user    User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  user     User      @relation(fields: [userId], references: [id], onDelete: Cascade)
   products Product[]
 
   @@map("stores")
@@ -76,7 +85,7 @@ model Category {
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
-  parent   Category? @relation("CategoryHierarchy", fields: [parentId], references: [id])
+  parent   Category?  @relation("CategoryHierarchy", fields: [parentId], references: [id])
   children Category[] @relation("CategoryHierarchy")
   products Product[]
 
@@ -94,10 +103,10 @@ model Product {
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
 
-  store     Store           @relation(fields: [storeId], references: [id], onDelete: Cascade)
-  category  Category        @relation(fields: [categoryId], references: [id])
-  images    ProductImage[]
-  cartItems CartItem[]
+  store      Store          @relation(fields: [storeId], references: [id], onDelete: Cascade)
+  category   Category       @relation(fields: [categoryId], references: [id])
+  images     ProductImage[]
+  cartItems  CartItem[]
   orderItems OrderItem[]
 
   @@map("products")
@@ -121,17 +130,17 @@ model Cart {
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
-  user User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  user  User       @relation(fields: [userId], references: [id], onDelete: Cascade)
   items CartItem[]
 
   @@map("carts")
 }
 
 model CartItem {
-  id        String  @id @default(cuid())
+  id        String   @id @default(cuid())
   cartId    String
   productId String
-  quantity  Int     @default(1)
+  quantity  Int      @default(1)
   createdAt DateTime @default(now())
 
   cart    Cart    @relation(fields: [cartId], references: [id], onDelete: Cascade)
@@ -142,21 +151,23 @@ model CartItem {
 }
 
 model Order {
-  id        String      @id @default(cuid())
-  userId    String
-  total     Float
-  status    OrderStatus @default(PENDING)
-  createdAt DateTime    @default(now())
-  updatedAt DateTime    @updatedAt
+  id            String        @id @default(cuid())
+  userId        String
+  total         Float
+  status        OrderStatus   @default(PENDING)
+  paymentStatus PaymentStatus @default(PENDING)
+  createdAt     DateTime      @default(now())
+  updatedAt     DateTime      @updatedAt
 
-  user  User        @relation(fields: [userId], references: [id], onDelete: Cascade)
-  items OrderItem[]
+  user    User        @relation(fields: [userId], references: [id], onDelete: Cascade)
+  items   OrderItem[]
+  payment Payment?
 
   @@map("orders")
 }
 
 model OrderItem {
-  id        String  @id @default(cuid())
+  id        String   @id @default(cuid())
   orderId   String
   productId String
   quantity  Int
@@ -167,4 +178,23 @@ model OrderItem {
   product Product @relation(fields: [productId], references: [id], onDelete: Cascade)
 
   @@map("order_items")
+}
+
+model Payment {
+  id          String        @id @default(cuid())
+  userId      String
+  orderId     String        @unique
+  amount      Float
+  currency    String        @default("GHS")
+  status      PaymentStatus @default(PENDING)
+  reference   String        @unique
+  paystackRef String?
+  message     String?
+  createdAt   DateTime      @default(now())
+  updatedAt   DateTime      @updatedAt
+
+  user  User  @relation(fields: [userId], references: [id], onDelete: Cascade)
+  order Order @relation(fields: [orderId], references: [id])
+
+  @@map("payments")
 }

@@ -28,6 +28,7 @@ export async function GET(request: NextRequest) {
             },
           },
         },
+        payment: true,
       },
       orderBy: { createdAt: 'desc' },
     })
