@@ -43,14 +43,12 @@ export async function GET(request: NextRequest) {
       })
     }
 
-    // Get unique orders using raw SQL to avoid enum issues
+    // Get unique orders using raw SQL - simpler query
     const activeOrderItems = await getPrisma().$queryRaw<Array<{ orderId: string }>>`
-      SELECT DISTINCT "orderId" FROM "orderItems" oi
+      SELECT DISTINCT oi."orderId" FROM "orderItems" oi
+      INNER JOIN "orders" o ON oi."orderId" = o.id
       WHERE oi."productId" = ANY(${productIds}::text[])
-      AND oi."orderId" IN (
-        SELECT id FROM "orders" 
-        WHERE status = ANY(ARRAY['PENDING'::"OrderStatus", 'PROCESSING'::"OrderStatus", 'SHIPPED'::"OrderStatus", 'DELIVERED'::"OrderStatus"])
-      )
+      AND (o.status = 'PENDING' OR o.status = 'PROCESSING' OR o.status = 'SHIPPED' OR o.status = 'DELIVERED')
     `
 
     // Count unique active orders
@@ -61,9 +59,9 @@ export async function GET(request: NextRequest) {
     const completedOrderItems = await getPrisma().$queryRaw<Array<{ total: number }>>`
       SELECT COALESCE(SUM(oi.price * oi.quantity), 0) as total
       FROM "orderItems" oi
-      JOIN "orders" o ON oi."orderId" = o.id
+      INNER JOIN "orders" o ON oi."orderId" = o.id
       WHERE oi."productId" = ANY(${productIds}::text[])
-      AND o.status = 'COMPLETED'::"OrderStatus"
+      AND o.status = 'COMPLETED'
     `
 
     const revenue = Number(completedOrderItems[0]?.total) || 0
