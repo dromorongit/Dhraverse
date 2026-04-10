@@ -89,7 +89,8 @@ export default function VendorDashboard() {
         await fetchMetrics()
       } else {
         const error = await response.json()
-        alert(error.error || 'Failed to update order status')
+        console.error('API error response:', error)
+        alert(error.error || error.details || 'Failed to update order status')
       }
     } catch (error) {
       console.error('Error updating order status:', error)
