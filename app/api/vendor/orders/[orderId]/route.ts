@@ -1,7 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { getPrisma } from '@/lib/prisma'
 import { verifyToken } from '@/lib/auth-middleware'
-import { Prisma } from '@prisma/client'
 
 export async function PATCH(request: NextRequest, { params }: { params: { orderId: string } }) {
   try {

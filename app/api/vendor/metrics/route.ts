@@ -35,45 +35,38 @@ export async function GET(request: NextRequest) {
     const productIds = store.products.map(p => p.id)
     const productCount = productIds.length
 
-    // Get unique orders that contain vendor's products and are not completed/cancelled
-    const activeOrderItems = await getPrisma().orderItem.findMany({
-      where: {
-        productId: { in: productIds },
-        order: {
-          status: {
-            in: ['PENDING', 'PROCESSING', 'SHIPPED', 'DELIVERED']
-          }
-        }
-      },
-      select: {
-        orderId: true,
-        order: {
-          select: {
-            status: true
-          }
-        }
-      }
-    })
+    if (productIds.length === 0) {
+      return NextResponse.json({
+        productCount: 0,
+        activeOrderCount: 0,
+        revenue: 0
+      })
+    }
+
+    // Get unique orders using raw SQL to avoid enum issues
+    const activeOrderItems = await getPrisma().$queryRaw<Array<{ orderId: string }>>`
+      SELECT DISTINCT "orderId" FROM "orderItems" oi
+      WHERE oi."productId" = ANY(${productIds}::text[])
+      AND oi."orderId" IN (
+        SELECT id FROM "orders" 
+        WHERE status = ANY(ARRAY['PENDING'::"OrderStatus", 'PROCESSING'::"OrderStatus", 'SHIPPED'::"OrderStatus", 'DELIVERED'::"OrderStatus"])
+      )
+    `
 
     // Count unique active orders
     const activeOrderIds = Array.from(new Set(activeOrderItems.map(item => item.orderId)))
     const activeOrderCount = activeOrderIds.length
 
-    // Calculate revenue from completed orders
-    const completedOrderItems = await getPrisma().orderItem.findMany({
-      where: {
-        productId: { in: productIds },
-        order: {
-          status: 'COMPLETED'
-        }
-      },
-      select: {
-        price: true,
-        quantity: true
-      }
-    })
+    // Calculate revenue from completed orders using raw SQL
+    const completedOrderItems = await getPrisma().$queryRaw<Array<{ total: number }>>`
+      SELECT COALESCE(SUM(oi.price * oi.quantity), 0) as total
+      FROM "orderItems" oi
+      JOIN "orders" o ON oi."orderId" = o.id
+      WHERE oi."productId" = ANY(${productIds}::text[])
+      AND o.status = 'COMPLETED'::"OrderStatus"
+    `
 
-    const revenue = completedOrderItems.reduce((sum, item) => sum + (item.price * item.quantity), 0)
+    const revenue = Number(completedOrderItems[0]?.total) || 0
 
     return NextResponse.json({
       productCount,
