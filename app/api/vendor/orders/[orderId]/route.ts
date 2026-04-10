@@ -83,7 +83,7 @@ export async function PATCH(request: NextRequest, { params }: { params: { orderI
 
     // Update the order status using raw SQL to avoid Prisma enum issues
     await getPrisma().$executeRaw`
-      UPDATE "orders" SET status = ${status}::"OrderStatus", updated_at = NOW() WHERE id = ${orderId}
+      UPDATE "orders" SET status = ${status}::"OrderStatus" WHERE id = ${orderId}
     `
 
     // Fetch the updated order
