@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { getPrisma } from '@/lib/prisma'
 import { verifyToken } from '@/lib/auth-middleware'
-import { OrderStatus } from '@prisma/client'
+import { Prisma } from '@prisma/client'
 
 export async function PATCH(request: NextRequest, { params }: { params: { orderId: string } }) {
   try {
@@ -81,19 +81,26 @@ export async function PATCH(request: NextRequest, { params }: { params: { orderI
       return NextResponse.json({ error: 'Order not found or not related to your products' }, { status: 404 })
     }
 
-    // Update the order status in a transaction
-    const updatedOrder = await getPrisma().$transaction(async (prisma) => {
-      return await prisma.order.update({
-        where: { id: orderId },
-        data: { status: status as OrderStatus },
-      })
-    })
+    // Update the order status using raw SQL to avoid Prisma enum issues
+    await getPrisma().$executeRaw`
+      UPDATE "orders" SET status = ${status}::"OrderStatus", updated_at = NOW() WHERE id = ${orderId}
+    `
+
+    // Fetch the updated order
+    const updatedOrder = await getPrisma().$queryRaw<Array<{
+      id: string
+      userId: string
+      total: number
+      status: string
+      createdAt: Date
+      updatedAt: Date
+    }>>`SELECT id, "userId", total, status, "createdAt", "updatedAt" FROM "orders" WHERE id = ${orderId}`
 
     return NextResponse.json({
       order: {
-        id: updatedOrder.id,
-        status: updatedOrder.status,
-        updatedAt: updatedOrder.updatedAt,
+        id: updatedOrder[0].id,
+        status: updatedOrder[0].status,
+        updatedAt: updatedOrder[0].updatedAt,
       }
     })
   } catch (error) {
