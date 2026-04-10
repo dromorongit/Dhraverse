@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { getPrisma } from '@/lib/prisma'
 import { verifyToken } from '@/lib/auth-middleware'
+import { OrderStatus } from '@prisma/client'
 
 export async function PATCH(request: NextRequest, { params }: { params: { orderId: string } }) {
   try {
@@ -84,7 +85,7 @@ export async function PATCH(request: NextRequest, { params }: { params: { orderI
     const updatedOrder = await getPrisma().$transaction(async (prisma) => {
       return await prisma.order.update({
         where: { id: orderId },
-        data: { status: status as any },
+        data: { status: status as OrderStatus },
       })
     })
 
