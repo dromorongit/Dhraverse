@@ -14,13 +14,25 @@ interface User {
 export function Navbar() {
   const router = useRouter()
   const [user, setUser] = useState<User | null>(null)
+  const [cartItemCount, setCartItemCount] = useState(0)
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
 
   useEffect(() => {
+    // Fetch user
     fetch('/api/auth/me')
       .then(res => res.json())
       .then(data => setUser(data.user))
       .catch(err => console.error('Failed to get user:', err))
+    
+    // Fetch cart item count
+    fetch('/api/cart')
+      .then(res => res.json())
+      .then(data => {
+        if (data.cart && data.cart.items) {
+          setCartItemCount(data.cart.items.length)
+        }
+      })
+      .catch(err => console.error('Failed to get cart:', err))
   }, [])
 
   const handleLogout = async () => {
@@ -69,9 +81,16 @@ export function Navbar() {
                   href="/cart"
                   className="border-transparent text-gray-500 hover:border-gray-300 hover:text-gray-700 inline-flex items-center px-1 pt-1 border-b-2 text-sm font-medium"
                 >
-                  <svg className="w-5 h-5 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 010 4m0-2a2 2 0 01-2 2m2 2v1a2 2 0 002 2h2" />
-                  </svg>
+                  <span className="relative">
+                    <svg className="w-5 h-5 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 010 4m0-2a2 2 0 01-2 2m2 2v1a2 2 0 002 2h2" />
+                    </svg>
+                    {cartItemCount > 0 && (
+                      <span className="absolute -top-2 -right-2 bg-red-500 text-white text-xs rounded-full w-4 h-4 flex items-center justify-center">
+                        {cartItemCount > 9 ? '9+' : cartItemCount}
+                      </span>
+                    )}
+                  </span>
                   Cart
                 </Link>
               )}
@@ -179,10 +198,17 @@ export function Navbar() {
               className="block px-3 py-2 rounded-md text-base font-medium text-gray-700 hover:text-gray-900 hover:bg-gray-50"
               onClick={closeMobileMenu}
             >
-              <svg className="w-5 h-5 mr-2 inline" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 010 4m0-2a2 2 0 01-2 2m2 2v1a2 2 0 002 2h2" />
-              </svg>
-              Cart
+              <span className="relative inline-flex">
+                <svg className="w-5 h-5 mr-2 inline" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 010 4m0-2a2 2 0 01-2 2m2 2v1a2 2 0 002 2h2" />
+                </svg>
+                Cart
+                {cartItemCount > 0 && (
+                  <span className="ml-1 bg-red-500 text-white text-xs rounded-full px-1.5 py-0.5">
+                    {cartItemCount}
+                  </span>
+                )}
+              </span>
             </Link>
           )}
           <div className="border-t border-gray-200 pt-4 pb-3">
