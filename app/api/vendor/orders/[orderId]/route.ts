@@ -8,7 +8,107 @@ export async function GET(
   request: NextRequest,
   { params }: { params: { orderId: string } }
 ) {
-  // ... (GET code remains the same)
+  try {
+    const token = request.cookies.get('token')?.value
+    if (!token) {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+    }
+
+    const payload = await verifyToken(token)
+    if (!payload || payload.role !== 'VENDOR') {
+      return NextResponse.json({ error: 'Forbidden' }, { status: 403 })
+    }
+
+    const orderId = params.orderId
+
+    // Get vendor's store to verify ownership
+    const store = await getPrisma().store.findUnique({
+      where: { userId: payload.userId },
+      include: {
+        products: {
+          select: { id: true },
+        },
+      },
+    })
+
+    if (!store) {
+      return NextResponse.json(
+        { error: 'Store not found' },
+        { status: 404 }
+      )
+    }
+
+    const productIds = store.products.map(p => p.id)
+
+    // Fetch the order ensuring it contains vendor's products and is paid
+    const order = await getPrisma().order.findFirst({
+      where: {
+        id: orderId,
+        paymentStatus: 'PAID', // Only paid orders
+        items: {
+          some: {
+            productId: { in: productIds },
+          },
+        },
+      },
+      include: {
+        items: {
+          where: {
+            productId: { in: productIds },
+          },
+          include: {
+            product: {
+              select: {
+                id: true,
+                name: true,
+              },
+            },
+          },
+        },
+        payment: true,
+        user: {
+          select: {
+            id: true,
+            email: true,
+            profile: {
+              select: {
+                firstName: true,
+                lastName: true,
+                phone: true,
+                address: true,
+              },
+            },
+          },
+        },
+      },
+    })
+
+    if (!order) {
+      return NextResponse.json(
+        { error: 'Order not found or access denied' },
+        { status: 404 }
+      )
+    }
+
+    // Calculate vendor-specific totals (only their products)
+    const vendorTotal = order.items.reduce(
+      (sum, item) => sum + item.price * item.quantity,
+      0
+    )
+
+    return NextResponse.json({
+      order: {
+        ...order,
+        vendorTotal,
+      },
+    })
+  } catch (error) {
+    console.error('Error fetching vendor order detail:', error)
+    return NextResponse.json(
+      { error: 'Internal server error' },
+      { status: 500 }
+    )
+  }
 }
 
 export async function PATCH(
