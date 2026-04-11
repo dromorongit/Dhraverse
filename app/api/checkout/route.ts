@@ -109,7 +109,8 @@ export async function POST(request: NextRequest) {
     })
 
     // Initialize Paystack payment
-    const callbackUrl = `${request.nextUrl.origin}/payment/callback?reference=${reference}`
+    // Callback to checkout page which handles verification
+    const callbackUrl = `${request.nextUrl.origin}/checkout?reference=${reference}`
     
     try {
       const paystackResponse = await initializePaystackPayment(
