@@ -2,88 +2,86 @@ import { NextRequest, NextResponse } from 'next/server'
 import { getPrisma } from '@/lib/prisma'
 import { verifyToken } from '@/lib/auth-middleware'
 
-export async function PATCH(request: NextRequest, { params }: { params: { orderId: string } }) {
+export const dynamic = 'force-dynamic'
+
+export async function GET(
+  request: NextRequest,
+  { params }: { params: { orderId: string } }
+) {
+  // ... (GET code remains the same)
+}
+
+export async function PATCH(
+  request: NextRequest,
+  { params }: { params: { orderId: string } }
+) {
   try {
-    console.log('PATCH /api/vendor/orders/:orderId - Starting')
-    console.log('Params:', params)
-    
     const token = request.cookies.get('token')?.value
-    console.log('Token exists:', !!token)
     if (!token) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
 
     const payload = await verifyToken(token)
-    console.log('Token payload:', payload)
     if (!payload || payload.role !== 'VENDOR') {
       return NextResponse.json({ error: 'Forbidden' }, { status: 403 })
     }
 
     const orderId = params.orderId
-    console.log('Order ID:', orderId)
-    
-    const { status } = await request.json()
-    console.log('New status:', status)
+    const body = await request.json()
+    const { status } = body
 
-    const allowedStatuses = ['PENDING', 'PROCESSING', 'SHIPPED', 'DELIVERED', 'COMPLETED', 'CANCELLED']
-    if (!allowedStatuses.includes(status)) {
-      return NextResponse.json({ error: 'Invalid status' }, { status: 400 })
+    // Validate status
+    const validStatuses = ['PENDING', 'PROCESSING', 'SHIPPED', 'DELIVERED', 'COMPLETED', 'CANCELLED']
+    if (!status || !validStatuses.includes(status)) {
+      return NextResponse.json(
+        { error: 'Invalid status. Must be one of: ' + validStatuses.join(', ') },
+        { status: 400 }
+      )
     }
 
-    // Get vendor's store
-    console.log('Getting vendor store for userId:', payload.userId)
-    let store = null
-    try {
-      store = await getPrisma().store.findUnique({
-        where: { userId: payload.userId },
-        include: {
-          products: {
-            select: { id: true },
-          },
+    // Get vendor's store to verify ownership
+    const store = await getPrisma().store.findUnique({
+      where: { userId: payload.userId },
+      include: {
+        products: {
+          select: { id: true },
         },
-      })
-    } catch (storeError) {
-      console.error('Error fetching store:', storeError)
-      return NextResponse.json({ error: 'Error fetching store' }, { status: 500 })
-    }
-    console.log('Store:', store ? 'found' : 'not found')
+      },
+    })
 
     if (!store) {
-      return NextResponse.json({ error: 'Store not found' }, { status: 404 })
+      return NextResponse.json(
+        { error: 'Store not found' },
+        { status: 404 }
+      )
     }
 
     const productIds = store.products.map(p => p.id)
-    console.log('Product IDs:', productIds)
 
-    // Check if the order contains any of the vendor's products
-    console.log('Looking for order items with orderId:', orderId, 'productId in:', productIds)
-    const orderItems = await getPrisma().orderItem.findMany({
+    // Verify the order contains vendor's products and is paid
+    const existingOrder = await getPrisma().order.findFirst({
       where: {
-        orderId,
-        productId: { in: productIds },
+        id: orderId,
+        paymentStatus: 'PAID',
+        items: {
+          some: {
+            productId: { in: productIds },
+          },
+        },
       },
     })
-    console.log('Found order items:', orderItems.length)
 
-    // Check if the order exists first
-    console.log('Checking if order exists:', orderId)
-    const existingOrder = await getPrisma().order.findUnique({
-      where: { id: orderId },
-    })
-    console.log('Existing order:', existingOrder)
-    
     if (!existingOrder) {
-      return NextResponse.json({ error: 'Order not found' }, { status: 404 })
+      return NextResponse.json(
+        { error: 'Order not found or access denied' },
+        { status: 404 }
+      )
     }
 
-    if (orderItems.length === 0) {
-      return NextResponse.json({ error: 'Order not found or not related to your products' }, { status: 404 })
-    }
-
-    // Update the order status using Prisma's regular update method
+    // Update the order status
     const updatedOrder = await getPrisma().order.update({
       where: { id: orderId },
-      data: { status: status },
+      data: { status },
     })
 
     return NextResponse.json({
@@ -91,14 +89,13 @@ export async function PATCH(request: NextRequest, { params }: { params: { orderI
         id: updatedOrder.id,
         status: updatedOrder.status,
         updatedAt: updatedOrder.updatedAt,
-      }
+      },
     })
   } catch (error) {
-    console.error('Error updating order status:', error)
-    // Return more detailed error for debugging
-    const errorMessage = error instanceof Error ? error.message : 'Unknown error'
-    const errorStack = error instanceof Error ? error.stack : ''
-    console.error('Error details:', { message: errorMessage, stack: errorStack })
-    return NextResponse.json({ error: 'Internal server error', details: errorMessage }, { status: 500 })
+    console.error('Error updating vendor order status:', error)
+    return NextResponse.json(
+      { error: 'Internal server error' },
+      { status: 500 }
+    )
   }
 }

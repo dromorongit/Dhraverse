@@ -174,35 +174,41 @@ export default function VendorDashboard() {
             ) : (
               <div className="space-y-4">
                 {orderItems.slice(0, 10).map((item) => (
-                  <div key={item.id} className="border border-gray-200 rounded-lg p-4">
+                  <Link 
+                    key={item.id} 
+                    href={`/dashboard/vendor/orders/${item.order.id}`}
+                    className="block border border-gray-200 rounded-lg p-4 hover:border-orange-300 hover:shadow-sm transition-all"
+                  >
                     <div className="flex justify-between items-start mb-2">
                       <div>
-                        <p className="font-semibold">{item.product.name}</p>
+                        <p className="font-semibold text-gray-900">{item.product.name}</p>
                         <p className="text-sm text-gray-600">
                           Order #{item.order.id.slice(-8)} • {new Date(item.order.createdAt).toLocaleDateString()}
                         </p>
                       </div>
                       <div className="text-right">
                         <p className="font-semibold">{formatPrice(item.price * item.quantity)}</p>
-                        <select
-                          value={item.order.status}
-                          onChange={(e) => updateOrderStatus(item.order.id, e.target.value)}
-                          disabled={updatingOrders.has(item.order.id)}
-                          className="text-xs px-2 py-1 rounded border border-gray-300 disabled:opacity-50"
-                        >
-                          <option value="PENDING">PENDING</option>
-                          <option value="PROCESSING">PROCESSING</option>
-                          <option value="SHIPPED">SHIPPED</option>
-                          <option value="DELIVERED">DELIVERED</option>
-                          <option value="COMPLETED">COMPLETED</option>
-                          <option value="CANCELLED">CANCELLED</option>
-                        </select>
+                        <span className={`inline-block text-xs px-2 py-1 rounded mt-1 ${
+                          item.order.status === 'PENDING'
+                            ? 'bg-yellow-100 text-yellow-800'
+                            : item.order.status === 'PROCESSING'
+                            ? 'bg-blue-100 text-blue-800'
+                            : item.order.status === 'SHIPPED'
+                            ? 'bg-purple-100 text-purple-800'
+                            : item.order.status === 'DELIVERED'
+                            ? 'bg-indigo-100 text-indigo-800'
+                            : item.order.status === 'COMPLETED'
+                            ? 'bg-green-100 text-green-800'
+                            : 'bg-gray-100 text-gray-800'
+                        }`}>
+                          {item.order.status}
+                        </span>
                       </div>
                     </div>
                     <div className="text-sm text-gray-600">
                       Quantity: {item.quantity} • Customer: {item.order.user.email}
                     </div>
-                  </div>
+                  </Link>
                 ))}
               </div>
             )}

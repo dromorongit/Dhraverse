@@ -1,5 +1,6 @@
 'use client'
 
+import Link from 'next/link'
 import { useState, useEffect } from 'react'
 import { Card, CardContent, CardHeader } from '@/components/Card'
 import { formatPrice } from '@/lib/currency'
@@ -69,10 +70,14 @@ export default function CustomerDashboard() {
               ) : (
                 <div className="space-y-4">
                   {orders.map((order) => (
-                    <div key={order.id} className="border border-gray-200 rounded-lg p-4">
+                    <Link 
+                      key={order.id} 
+                      href={`/dashboard/customer/orders/${order.id}`}
+                      className="block border border-gray-200 rounded-lg p-4 hover:border-orange-300 hover:shadow-sm transition-all"
+                    >
                       <div className="flex justify-between items-start mb-2">
                         <div>
-                          <p className="font-semibold">Order #{order.id.slice(-8)}</p>
+                          <p className="font-semibold text-gray-900">Order #{order.id.slice(-8)}</p>
                           <p className="text-sm text-gray-600">
                             {new Date(order.createdAt).toLocaleDateString()}
                           </p>
@@ -112,7 +117,7 @@ export default function CustomerDashboard() {
                       <div className="text-sm text-gray-600">
                         {order.items.length} item{order.items.length !== 1 ? 's' : ''}: {order.items.map(item => item.product.name).join(', ')}
                       </div>
-                    </div>
+                    </Link>
                   ))}
                 </div>
               )}

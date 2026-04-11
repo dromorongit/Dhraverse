@@ -131,14 +131,21 @@ export default function PaymentSuccessContent() {
             </div>
 
             {/* Actions */}
-            <div className="flex flex-col sm:flex-row gap-4">
-              <Link href="/dashboard/customer" className="flex-1">
+            <div className="space-y-4">
+              {orderId && (
+                <Link href={`/dashboard/customer/orders/${orderId}`} className="block">
+                  <Button className="w-full">
+                    View Order Details
+                  </Button>
+                </Link>
+              )}
+              <Link href="/dashboard/customer" className="block">
                 <Button variant="outline" className="w-full">
                   View My Orders
                 </Button>
               </Link>
-              <Link href="/marketplace" className="flex-1">
-                <Button className="w-full">
+              <Link href="/marketplace" className="block">
+                <Button variant="outline" className="w-full">
                   Continue Shopping
                 </Button>
               </Link>
