@@ -100,10 +100,9 @@ export async function POST(request: NextRequest) {
         })
       }
 
-      // Clear cart
-      await prisma.cartItem.deleteMany({
-        where: { cartId: cart.id },
-      })
+      // DO NOT clear cart here - only clear after successful payment
+      // This ensures cart items are preserved if payment is cancelled or failed
+      // Cart will be cleared in payment/verify route after successful payment
 
       return { order, payment }
     })

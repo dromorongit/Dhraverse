@@ -27,10 +27,37 @@ export async function POST(request: NextRequest) {
 
     // Verify the payment with Paystack
     const paystackResponse = await verifyPaystackPayment(reference)
+    const paymentStatus = paystackResponse.data.status
 
-    if (paystackResponse.data.status === 'success') {
-      // Payment was successful
+    // Check if payment was abandoned, cancelled, or failed
+    if (paymentStatus !== 'success') {
+      // Payment failed, abandoned, or cancelled
+      const isAbandoned = paymentStatus === 'abandoned'
+      const failedStatus = isAbandoned ? 'CANCELLED' : 'FAILED'
+      
       await getPrisma().$transaction(async (prisma) => {
+        await prisma.payment.update({
+          where: { id: payment.id },
+          data: {
+            status: failedStatus,
+            message: isAbandoned ? 'Payment abandoned via webhook' : 'Payment failed via webhook',
+          },
+        })
+
+        await prisma.order.update({
+          where: { id: payment.orderId },
+          data: {
+            paymentStatus: failedStatus,
+            status: 'CANCELLED',
+          },
+        })
+      })
+
+      return NextResponse.json({ received: true })
+    }
+
+    // Payment was successful
+    await getPrisma().$transaction(async (prisma) => {
         // Update payment status to PAID
         await prisma.payment.update({
           where: { id: payment.id },
@@ -69,27 +96,6 @@ export async function POST(request: NextRequest) {
       })
 
       return NextResponse.json({ received: true })
-    } else {
-      // Payment failed
-      await getPrisma().$transaction(async (prisma) => {
-        await prisma.payment.update({
-          where: { id: payment.id },
-          data: {
-            status: 'FAILED',
-            message: 'Payment failed via webhook',
-          },
-        })
-
-        await prisma.order.update({
-          where: { id: payment.orderId },
-          data: {
-            paymentStatus: 'FAILED',
-          },
-        })
-      })
-
-      return NextResponse.json({ received: true })
-    }
   } catch (error) {
     console.error('Error processing payment webhook:', error)
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 })

@@ -32,10 +32,13 @@ export async function GET(request: NextRequest) {
 
     const productIds = store.products.map(p => p.id)
 
-    // Get order items for vendor's products
+    // Get order items for vendor's products - only paid orders
     const orderItems = await getPrisma().orderItem.findMany({
       where: {
         productId: { in: productIds },
+        order: {
+          paymentStatus: 'PAID', // Only show paid orders to vendors
+        },
       },
       include: {
         order: {

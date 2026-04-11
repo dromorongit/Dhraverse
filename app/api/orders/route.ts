@@ -14,7 +14,8 @@ export async function GET(request: NextRequest) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
 
-    // Get user's orders
+    // Get user's orders including all payment statuses
+    // This shows customers their order history including pending, paid, failed, and cancelled orders
     const orders = await getPrisma().order.findMany({
       where: { userId: payload.userId },
       include: {

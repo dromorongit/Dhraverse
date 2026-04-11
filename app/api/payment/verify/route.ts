@@ -36,9 +36,43 @@ export async function POST(request: NextRequest) {
     // Verify the payment with Paystack
     const paystackResponse = await verifyPaystackPayment(reference)
 
-    if (paystackResponse.data.status === 'success') {
-      // Payment was successful - update payment and order status
+    // Check both Paystack status and our payment status
+    const paymentStatus = paystackResponse.data.status
+    
+    // Check if payment was abandoned, cancelled, or failed
+    if (paymentStatus !== 'success') {
+      // Payment failed, abandoned, or cancelled - mark as failed/cancelled
+      const isAbandoned = paymentStatus === 'abandoned'
+      const failedStatus = isAbandoned ? 'CANCELLED' : 'FAILED'
+      
       await getPrisma().$transaction(async (prisma) => {
+        // Update payment status to FAILED or CANCELLED
+        await prisma.payment.update({
+          where: { id: payment.id },
+          data: {
+            status: failedStatus,
+            message: isAbandoned ? 'Payment abandoned by user' : paymentStatus || 'Payment verification failed',
+          },
+        })
+
+        // Update order payment status to match
+        await prisma.order.update({
+          where: { id: payment.orderId },
+          data: {
+            paymentStatus: failedStatus,
+            status: 'CANCELLED', // Also cancel the order
+          },
+        })
+      })
+
+      return NextResponse.json({
+        success: false,
+        error: isAbandoned ? 'Payment was cancelled' : 'Payment verification failed',
+      }, { status: 400 })
+    }
+
+    // Payment was successful - update payment and order status
+    await getPrisma().$transaction(async (prisma) => {
         // Update payment status to PAID
         await prisma.payment.update({
           where: { id: payment.id },
@@ -74,6 +108,16 @@ export async function POST(request: NextRequest) {
             })
           }
         }
+
+        // Clear the user's cart after successful payment
+        const cart = await prisma.cart.findUnique({
+          where: { userId: payload.userId },
+        })
+        if (cart) {
+          await prisma.cartItem.deleteMany({
+            where: { cartId: cart.id },
+          })
+        }
       })
 
       return NextResponse.json({
@@ -81,32 +125,6 @@ export async function POST(request: NextRequest) {
         orderId: payment.orderId,
         message: 'Payment verified successfully',
       })
-    } else {
-      // Payment failed or was abandoned
-      await getPrisma().$transaction(async (prisma) => {
-        // Update payment status to FAILED
-        await prisma.payment.update({
-          where: { id: payment.id },
-          data: {
-            status: 'FAILED',
-            message: paystackResponse.data.status || 'Payment verification failed',
-          },
-        })
-
-        // Update order payment status
-        await prisma.order.update({
-          where: { id: payment.orderId },
-          data: {
-            paymentStatus: 'FAILED',
-          },
-        })
-      })
-
-      return NextResponse.json({
-        success: false,
-        error: 'Payment verification failed',
-      }, { status: 400 })
-    }
   } catch (error) {
     console.error('Error verifying payment:', error)
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 })

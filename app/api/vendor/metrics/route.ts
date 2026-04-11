@@ -45,7 +45,7 @@ export async function GET(request: NextRequest) {
       })
     }
 
-    // Get active orders (PENDING, PROCESSING, SHIPPED, DELIVERED) that contain vendor's products
+    // Get active orders (PENDING, PROCESSING, SHIPPED, DELIVERED) that contain vendor's products - only paid
     const activeOrders = await getPrisma().order.findMany({
       where: {
         items: {
@@ -53,7 +53,8 @@ export async function GET(request: NextRequest) {
             productId: { in: productIds }
           }
         },
-        status: { in: ['PENDING', 'PROCESSING', 'SHIPPED', 'DELIVERED'] }
+        status: { in: ['PENDING', 'PROCESSING', 'SHIPPED', 'DELIVERED'] },
+        paymentStatus: 'PAID', // Only count paid orders
       },
       select: {
         id: true
@@ -62,12 +63,13 @@ export async function GET(request: NextRequest) {
 
     const activeOrderCount = activeOrders.length
 
-    // Get completed orders that contain vendor's products and calculate revenue
+    // Get completed orders that contain vendor's products and calculate revenue - only paid orders
     const completedOrders = await getPrisma().orderItem.findMany({
       where: {
         productId: { in: productIds },
         order: {
-          status: 'COMPLETED'
+          status: 'COMPLETED',
+          paymentStatus: 'PAID' // Only count paid orders in revenue
         }
       },
       select: {

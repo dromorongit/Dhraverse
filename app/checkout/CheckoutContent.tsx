@@ -124,27 +124,49 @@ export default function CheckoutContent() {
         body: JSON.stringify({ reference: ref }),
       })
 
+      // Handle HTTP errors (400, 500, etc.)
+      if (!response.ok) {
+        setProcessing(false)
+        router.push('/payment/failed')
+        return
+      }
+
       const data = await response.json()
       
+      // Handle successful payment verification
       if (data.success) {
         router.push(`/payment/success?orderId=${data.orderId}`)
       } else {
+        // Payment was cancelled, failed, or abandoned
+        setProcessing(false)
         router.push('/payment/failed')
       }
     } catch (err) {
       console.error('Payment verification error:', err)
-      router.push('/payment/failed')
-    } finally {
       setProcessing(false)
+      router.push('/payment/failed')
     }
   }
 
-  // Handle payment callback
+  // Handle payment callback from Paystack
   useEffect(() => {
-    if (paymentStatus && reference) {
-      verifyPayment(reference)
+    const status = searchParams.get('status')
+    const ref = searchParams.get('reference') || searchParams.get('trxref')
+    
+    // User returned from Paystack with successful payment - verify it
+    if (ref && (status === 'success' || !status)) {
+      verifyPayment(ref)
+    } else if (status === 'cancelled' || status === 'failed') {
+      // User returned from Paystack but payment was cancelled or failed
+      // Clear processing state and redirect to failed page
+      setProcessing(false)
+      router.push('/payment/failed')
+    } else if (!status && !ref && searchParams.toString()) {
+      // User returned but no valid payment params - likely cancelled
+      // Clear processing state
+      setProcessing(false)
     }
-  }, [paymentStatus, reference])
+  }, [searchParams, router])
 
   if (loading) {
     return (
