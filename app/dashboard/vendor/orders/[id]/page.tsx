@@ -1,6 +1,7 @@
 'use client'
 
-import { useState, useEffect, use } from 'react'
+import { useState, useEffect } from 'react'
+import { useParams } from 'next/navigation'
 import Link from 'next/link'
 import { Card, CardContent, CardHeader } from '@/components/Card'
 import { Button } from '@/components/Button'
@@ -59,22 +60,25 @@ const ORDER_STATUS_CONFIG = {
 // Status progression for vendors
 const STATUS_PROGRESSION = ['PENDING', 'PROCESSING', 'SHIPPED', 'DELIVERED', 'COMPLETED']
 
-export default function VendorOrderDetailPage({ params }: { params: Promise<{ id: string }> }) {
-  const resolvedParams = use(params)
+export default function VendorOrderDetailPage() {
+  const params = useParams()
+  const orderId = params.id as string
   const [order, setOrder] = useState<Order | null>(null)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
   const [updatingStatus, setUpdatingStatus] = useState(false)
 
   useEffect(() => {
-    fetchOrderDetail()
-  }, [resolvedParams.id])
+    if (orderId) {
+      fetchOrderDetail()
+    }
+  }, [orderId])
 
   const fetchOrderDetail = async () => {
     try {
       setLoading(true)
       setError(null)
-      const response = await fetch(`/api/vendor/orders/${resolvedParams.id}`)
+      const response = await fetch(`/api/vendor/orders/${orderId}`)
       
       if (!response.ok) {
         const errorData = await response.json()

@@ -1,7 +1,7 @@
 'use client'
 
-import { useState, useEffect, use } from 'react'
-import { useRouter } from 'next/navigation'
+import { useState, useEffect } from 'react'
+import { useRouter, useParams } from 'next/navigation'
 import Link from 'next/link'
 import { Card, CardContent, CardHeader } from '@/components/Card'
 import { Button } from '@/components/Button'
@@ -65,22 +65,25 @@ const PAYMENT_STATUS_CONFIG = {
   REFUNDED: { label: 'Refunded', color: 'bg-gray-100 text-gray-800' },
 }
 
-export default function CustomerOrderDetailPage({ params }: { params: Promise<{ id: string }> }) {
-  const resolvedParams = use(params)
+export default function CustomerOrderDetailPage() {
   const router = useRouter()
+  const params = useParams()
+  const orderId = params.id as string
   const [order, setOrder] = useState<Order | null>(null)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
 
   useEffect(() => {
-    fetchOrderDetail()
-  }, [resolvedParams.id])
+    if (orderId) {
+      fetchOrderDetail()
+    }
+  }, [orderId])
 
   const fetchOrderDetail = async () => {
     try {
       setLoading(true)
       setError(null)
-      const response = await fetch(`/api/orders/${resolvedParams.id}`)
+      const response = await fetch(`/api/orders/${orderId}`)
       
       if (!response.ok) {
         const errorData = await response.json()
