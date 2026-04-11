@@ -127,7 +127,7 @@ export default function CheckoutContent() {
       // Handle HTTP errors (400, 500, etc.)
       if (!response.ok) {
         setProcessing(false)
-        router.push('/payment/failed')
+        window.location.href = '/payment/failed'
         return
       }
 
@@ -135,16 +135,16 @@ export default function CheckoutContent() {
       
       // Handle successful payment verification
       if (data.success) {
-        router.push(`/payment/success?orderId=${data.orderId}`)
+        window.location.href = `/payment/success?orderId=${data.orderId}`
       } else {
         // Payment was cancelled, failed, or abandoned
         setProcessing(false)
-        router.push('/payment/failed')
+        window.location.href = '/payment/failed'
       }
     } catch (err) {
       console.error('Payment verification error:', err)
       setProcessing(false)
-      router.push('/payment/failed')
+      window.location.href = '/payment/failed'
     }
   }
 
@@ -158,15 +158,18 @@ export default function CheckoutContent() {
       verifyPayment(ref)
     } else if (status === 'cancelled' || status === 'failed') {
       // User returned from Paystack but payment was cancelled or failed
-      // Clear processing state and redirect to failed page
+      // Use window.location for reliable redirect
       setProcessing(false)
-      router.push('/payment/failed')
-    } else if (!status && !ref && searchParams.toString()) {
-      // User returned but no valid payment params - likely cancelled
-      // Clear processing state
+      window.location.href = '/payment/failed'
+    } else if (searchParams.toString()) {
+      // User returned with any other params - treat as cancelled/abandoned
       setProcessing(false)
+      // Only redirect if there are params but not a successful payment
+      if (!ref) {
+        window.location.href = '/payment/failed'
+      }
     }
-  }, [searchParams, router])
+  }, [searchParams])
 
   if (loading) {
     return (
