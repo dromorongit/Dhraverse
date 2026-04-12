@@ -2,6 +2,8 @@ import { NextRequest, NextResponse } from 'next/server'
 import { getPrisma } from '@/lib/prisma'
 import { verifyToken } from '@/lib/auth-middleware'
 import { initializePaystackPayment, isPaystackConfigured } from '@/lib/paystack'
+import { sendOrderConfirmationEmail } from '@/lib/email'
+import { createNotification } from '@/lib/notifications'
 import crypto from 'crypto'
 
 export async function POST(request: NextRequest) {
@@ -127,6 +129,20 @@ export async function POST(request: NextRequest) {
       await getPrisma().payment.update({
         where: { id: result.payment.id },
         data: { paystackRef: paystackResponse.data.reference },
+      })
+
+      // Send order confirmation email (non-blocking, don't fail if email fails)
+      const userProfile = await getPrisma().profile.findUnique({
+        where: { userId: payload.userId },
+      })
+      const customerName = userProfile?.firstName || user?.email.split('@')[0] || 'Customer'
+      sendOrderConfirmationEmail(user.email, customerName, result.order.id, total, 'GHS').catch(err => {
+        console.error('Failed to send order confirmation email:', err)
+      })
+
+      // Create in-app notification
+      createNotification(payload.userId, 'ORDER_PLACED', 'Order Placed', `Your order #${result.order.id.slice(0, 8)} has been placed. Total: GHS ${total.toFixed(2)}`).catch(err => {
+        console.error('Failed to create notification:', err)
       })
 
       return NextResponse.json({

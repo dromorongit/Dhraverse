@@ -29,6 +29,14 @@ interface VendorMetrics {
   productCount: number
   activeOrderCount: number
   revenue: number
+  averageRating: number
+  totalReviews: number
+  bestSellers: Array<{
+    productId: string
+    productName: string
+    totalSold: number
+  }>
+  totalPaidOrders: number
 }
 
 export default function VendorDashboard() {
@@ -36,7 +44,11 @@ export default function VendorDashboard() {
   const [metrics, setMetrics] = useState<VendorMetrics>({
     productCount: 0,
     activeOrderCount: 0,
-    revenue: 0
+    revenue: 0,
+    averageRating: 0,
+    totalReviews: 0,
+    bestSellers: [],
+    totalPaidOrders: 0
   })
   const [loading, setLoading] = useState(true)
   const [updatingOrders, setUpdatingOrders] = useState<Set<string>>(new Set())
@@ -103,11 +115,30 @@ export default function VendorDashboard() {
       })
     }
   }
+
+  const renderStars = (rating: number) => {
+    return (
+      <div className="flex gap-0.5">
+        {[1, 2, 3, 4, 5].map((star) => (
+          <span
+            key={star}
+            className={`text-lg ${
+              star <= Math.round(rating) ? 'text-yellow-400' : 'text-gray-300'
+            }`}
+          >
+            ★
+          </span>
+        ))}
+      </div>
+    )
+  }
+
   return (
     <div className="min-h-screen bg-gray-50 py-8">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <h1 className="text-3xl font-bold text-gray-900 mb-8">Vendor Dashboard</h1>
 
+        {/* Key Metrics Cards */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
           <Card>
             <CardHeader>
@@ -128,12 +159,10 @@ export default function VendorDashboard() {
               <h3 className="text-lg font-semibold text-gray-900">Products</h3>
             </CardHeader>
             <CardContent>
-              <p className="text-gray-600 mb-4">Add and manage your products</p>
-              <Link href="/dashboard/vendor/products">
-                <Button variant="outline" size="sm" className="w-full">
-                  View Products
-                </Button>
-              </Link>
+              <p className="text-3xl font-bold text-blue-600 mb-2">
+                {loading ? '...' : metrics.productCount}
+              </p>
+              <p className="text-sm text-gray-600">Products listed</p>
             </CardContent>
           </Card>
 
@@ -160,6 +189,92 @@ export default function VendorDashboard() {
               <p className="text-sm text-gray-600">Total completed</p>
             </CardContent>
           </Card>
+        </div>
+
+        {/* Vendor Insights Section */}
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
+          {/* Rating & Reviews Card */}
+          <Card>
+            <CardHeader>
+              <h3 className="text-lg font-semibold text-gray-900">Customer Reviews</h3>
+            </CardHeader>
+            <CardContent>
+              {loading ? (
+                <p className="text-gray-600">Loading...</p>
+              ) : metrics.totalReviews === 0 ? (
+                <div className="text-center py-4">
+                  <p className="text-gray-500 mb-2">No reviews yet</p>
+                  <p className="text-sm text-gray-400">Reviews will appear here when customers rate your products</p>
+                </div>
+              ) : (
+                <div className="space-y-4">
+                  <div className="flex items-center gap-4">
+                    <div className="text-4xl font-bold text-gray-900">
+                      {metrics.averageRating.toFixed(1)}
+                    </div>
+                    <div>
+                      {renderStars(metrics.averageRating)}
+                      <p className="text-sm text-gray-600 mt-1">
+                        Based on {metrics.totalReviews} review{metrics.totalReviews !== 1 ? 's' : ''}
+                      </p>
+                    </div>
+                  </div>
+                </div>
+              )}
+            </CardContent>
+          </Card>
+
+          {/* Best Sellers Card */}
+          <Card>
+            <CardHeader>
+              <h3 className="text-lg font-semibold text-gray-900">Best Sellers</h3>
+            </CardHeader>
+            <CardContent>
+              {loading ? (
+                <p className="text-gray-600">Loading...</p>
+              ) : metrics.bestSellers.length === 0 ? (
+                <div className="text-center py-4">
+                  <p className="text-gray-500 mb-2">No sales yet</p>
+                  <p className="text-sm text-gray-400">Best-selling products will appear here</p>
+                </div>
+              ) : (
+                <div className="space-y-3">
+                  {metrics.bestSellers.map((seller, index) => (
+                    <div key={seller.productId} className="flex items-center justify-between">
+                      <div className="flex items-center gap-3">
+                        <span className="flex-shrink-0 w-6 h-6 bg-orange-100 text-orange-600 rounded-full flex items-center justify-center text-sm font-medium">
+                          {index + 1}
+                        </span>
+                        <span className="text-gray-900">{seller.productName}</span>
+                      </div>
+                      <span className="text-sm text-gray-600">
+                        {seller.totalSold} sold
+                      </span>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </CardContent>
+          </Card>
+        </div>
+
+        {/* Quick Stats */}
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-8">
+          <div className="bg-white rounded-lg border border-gray-200 p-4">
+            <p className="text-sm text-gray-600">Total Paid Orders</p>
+            <p className="text-2xl font-bold text-gray-900">{loading ? '...' : metrics.totalPaidOrders}</p>
+          </div>
+          <div className="bg-white rounded-lg border border-gray-200 p-4">
+            <p className="text-sm text-gray-600">Total Revenue</p>
+            <p className="text-2xl font-bold text-green-600">{loading ? '...' : formatPrice(metrics.revenue)}</p>
+          </div>
+          <div className="bg-white rounded-lg border border-gray-200 p-4">
+            <p className="text-sm text-gray-600">Average Rating</p>
+            <div className="flex items-center gap-2">
+              <p className="text-2xl font-bold text-gray-900">{loading ? '...' : metrics.averageRating.toFixed(1)}</p>
+              {!loading && metrics.totalReviews > 0 && renderStars(metrics.averageRating)}
+            </div>
+          </div>
         </div>
 
         <Card className="mb-8">

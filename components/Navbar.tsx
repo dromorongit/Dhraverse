@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
 import Image from 'next/image'
@@ -11,11 +11,26 @@ interface User {
   role: string
 }
 
+interface Notification {
+  id: string
+  type: string
+  title: string
+  message: string
+  isRead: boolean
+  createdAt: string
+}
+
 export function Navbar() {
   const router = useRouter()
   const [user, setUser] = useState<User | null>(null)
   const [cartItemCount, setCartItemCount] = useState(0)
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
+  
+  // Notifications
+  const [notifications, setNotifications] = useState<Notification[]>([])
+  const [unreadCount, setUnreadCount] = useState(0)
+  const [notificationsOpen, setNotificationsOpen] = useState(false)
+  const notificationRef = useRef<HTMLDivElement>(null)
 
   useEffect(() => {
     // Fetch user
@@ -34,6 +49,69 @@ export function Navbar() {
       })
       .catch(err => console.error('Failed to get cart:', err))
   }, [])
+
+  useEffect(() => {
+    if (user) {
+      fetchNotifications()
+    }
+  }, [user])
+
+  // Close notifications dropdown when clicking outside
+  useEffect(() => {
+    function handleClickOutside(event: MouseEvent) {
+      if (notificationRef.current && !notificationRef.current.contains(event.target as Node)) {
+        setNotificationsOpen(false)
+      }
+    }
+    document.addEventListener('mousedown', handleClickOutside)
+    return () => document.removeEventListener('mousedown', handleClickOutside)
+  }, [])
+
+  const fetchNotifications = async () => {
+    try {
+      const response = await fetch('/api/notifications')
+      if (response.ok) {
+        const data = await response.json()
+        setNotifications(data.notifications)
+        setUnreadCount(data.unreadCount)
+      }
+    } catch (error) {
+      console.error('Error fetching notifications:', error)
+    }
+  }
+
+  const markAsRead = async (notificationId?: string) => {
+    try {
+      const response = await fetch('/api/notifications', {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          notificationId,
+          markAllRead: !notificationId,
+        }),
+      })
+      if (response.ok) {
+        fetchNotifications()
+      }
+    } catch (error) {
+      console.error('Error marking notification as read:', error)
+    }
+  }
+
+  const formatNotificationDate = (dateString: string) => {
+    const date = new Date(dateString)
+    const now = new Date()
+    const diffMs = now.getTime() - date.getTime()
+    const diffMins = Math.floor(diffMs / 60000)
+    const diffHours = Math.floor(diffMs / 3600000)
+    const diffDays = Math.floor(diffMs / 86400000)
+
+    if (diffMins < 1) return 'Just now'
+    if (diffMins < 60) return `${diffMins}m ago`
+    if (diffHours < 24) return `${diffHours}h ago`
+    if (diffDays < 7) return `${diffDays}d ago`
+    return date.toLocaleDateString()
+  }
 
   const handleLogout = async () => {
     await fetch('/api/auth/logout', { method: 'POST' })
@@ -99,6 +177,72 @@ export function Navbar() {
           <div className="hidden sm:ml-6 sm:flex sm:items-center sm:space-x-4">
             {user ? (
               <>
+                {/* Notifications Bell */}
+                <div className="relative" ref={notificationRef}>
+                  <button
+                    onClick={() => setNotificationsOpen(!notificationsOpen)}
+                    className="relative p-2 text-gray-500 hover:text-gray-700 transition-colors"
+                  >
+                    <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9" />
+                    </svg>
+                    {unreadCount > 0 && (
+                      <span className="absolute -top-1 -right-1 bg-red-500 text-white text-xs rounded-full w-5 h-5 flex items-center justify-center">
+                        {unreadCount > 9 ? '9+' : unreadCount}
+                      </span>
+                    )}
+                  </button>
+
+                  {/* Notifications Dropdown */}
+                  {notificationsOpen && (
+                    <div className="absolute right-0 mt-2 w-80 bg-white rounded-lg shadow-lg border border-gray-200 z-50">
+                      <div className="p-4 border-b border-gray-200 flex justify-between items-center">
+                        <h3 className="font-semibold text-gray-900">Notifications</h3>
+                        {unreadCount > 0 && (
+                          <button
+                            onClick={() => markAsRead()}
+                            className="text-sm text-blue-600 hover:text-blue-800"
+                          >
+                            Mark all read
+                          </button>
+                        )}
+                      </div>
+                      <div className="max-h-96 overflow-y-auto">
+                        {notifications.length === 0 ? (
+                          <div className="p-4 text-center text-gray-500">
+                            No notifications
+                          </div>
+                        ) : (
+                          notifications.slice(0, 10).map((notification) => (
+                            <div
+                              key={notification.id}
+                              onClick={() => !notification.isRead && markAsRead(notification.id)}
+                              className={`p-4 border-b border-gray-100 cursor-pointer hover:bg-gray-50 ${
+                                !notification.isRead ? 'bg-blue-50' : ''
+                              }`}
+                            >
+                              <div className="flex justify-between items-start">
+                                <p className="font-medium text-gray-900 text-sm">
+                                  {notification.title}
+                                </p>
+                                <span className="text-xs text-gray-500">
+                                  {formatNotificationDate(notification.createdAt)}
+                                </span>
+                              </div>
+                              <p className="text-sm text-gray-600 mt-1 line-clamp-2">
+                                {notification.message}
+                              </p>
+                              {!notification.isRead && (
+                                <span className="inline-block w-2 h-2 bg-blue-500 rounded-full mt-2" />
+                              )}
+                            </div>
+                          ))
+                        )}
+                      </div>
+                    </div>
+                  )}
+                </div>
+
                 <span className="text-gray-700">Welcome, {user.role}</span>
                 {user.role === 'ADMIN' && (
                   <Link href="/dashboard/admin">

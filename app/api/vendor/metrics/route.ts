@@ -82,10 +82,61 @@ export async function GET(request: NextRequest) {
       return total + (item.price * item.quantity)
     }, 0)
 
+    // Get average product rating
+    const productReviews = await getPrisma().review.aggregate({
+      where: {
+        productId: { in: productIds }
+      },
+      _avg: {
+        rating: true
+      },
+      _count: {
+        rating: true
+      }
+    })
+
+    // Get best-selling products (top 5 by quantity sold in paid completed orders)
+    const bestSellers = await getPrisma().orderItem.groupBy({
+      by: ['productId'],
+      where: {
+        productId: { in: productIds },
+        order: {
+          paymentStatus: 'PAID',
+          status: { in: ['COMPLETED', 'DELIVERED'] }
+        }
+      },
+      _sum: {
+        quantity: true
+      },
+      orderBy: {
+        _sum: {
+          quantity: 'desc'
+        }
+      },
+      take: 5
+    })
+
+    // Get product details for best sellers
+    const bestSellerIds = bestSellers.map(b => b.productId)
+    const bestSellerProducts = await getPrisma().product.findMany({
+      where: { id: { in: bestSellerIds } },
+      select: { id: true, name: true }
+    })
+
+    const bestSellersWithNames = bestSellers.map(b => ({
+      productId: b.productId,
+      productName: bestSellerProducts.find(p => p.id === b.productId)?.name || 'Unknown Product',
+      totalSold: b._sum.quantity || 0
+    }))
+
     return NextResponse.json({
       productCount,
       activeOrderCount,
-      revenue
+      revenue,
+      averageRating: productReviews._avg.rating || 0,
+      totalReviews: productReviews._count.rating || 0,
+      bestSellers: bestSellersWithNames,
+      totalPaidOrders: activeOrders.length + completedOrders.length
     })
   } catch (error) {
     console.error('Error fetching vendor metrics:', error)

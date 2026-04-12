@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { getPrisma } from '@/lib/prisma'
 import { verifyToken } from '@/lib/auth-middleware'
 import { verifyPaystackPayment } from '@/lib/paystack'
+import { sendPaymentConfirmationEmail } from '@/lib/email'
 
 export async function POST(request: NextRequest) {
   try {
@@ -73,58 +74,82 @@ export async function POST(request: NextRequest) {
 
     // Payment was successful - update payment and order status
     await getPrisma().$transaction(async (prisma) => {
-        // Update payment status to PAID
-        await prisma.payment.update({
-          where: { id: payment.id },
-          data: {
-            status: 'PAID',
-            message: 'Payment successful',
-          },
+      // Update payment status to PAID
+      await prisma.payment.update({
+        where: { id: payment.id },
+        data: {
+          status: 'PAID',
+          message: 'Payment successful',
+        },
+      })
+
+      // Update order status to PROCESSING (order is now active)
+      await prisma.order.update({
+        where: { id: payment.orderId },
+        data: {
+          status: 'PROCESSING',
+          paymentStatus: 'PAID',
+        },
+      })
+
+      // Deduct stock for the order items
+      const orderItems = await prisma.orderItem.findMany({
+        where: { orderId: payment.orderId },
+      })
+
+      for (const item of orderItems) {
+        const product = await prisma.product.findUnique({
+          where: { id: item.productId },
         })
 
-        // Update order status to PROCESSING (order is now active)
-        await prisma.order.update({
-          where: { id: payment.orderId },
-          data: {
-            status: 'PROCESSING',
-            paymentStatus: 'PAID',
-          },
-        })
-
-        // Deduct stock for the order items
-        const orderItems = await prisma.orderItem.findMany({
-          where: { orderId: payment.orderId },
-        })
-
-        for (const item of orderItems) {
-          const product = await prisma.product.findUnique({
+        if (product && product.stock >= item.quantity) {
+          await prisma.product.update({
             where: { id: item.productId },
+            data: { stock: product.stock - item.quantity },
           })
-
-          if (product && product.stock >= item.quantity) {
-            await prisma.product.update({
-              where: { id: item.productId },
-              data: { stock: product.stock - item.quantity },
-            })
-          }
         }
+      }
 
-        // Clear the user's cart after successful payment
-        const cart = await prisma.cart.findUnique({
-          where: { userId: payload.userId },
+      // Clear the user's cart after successful payment
+      const cart = await prisma.cart.findUnique({
+        where: { userId: payload.userId },
+      })
+      if (cart) {
+        await prisma.cartItem.deleteMany({
+          where: { cartId: cart.id },
         })
-        if (cart) {
-          await prisma.cartItem.deleteMany({
-            where: { cartId: cart.id },
-          })
-        }
+      }
+    })
+
+    // Send payment confirmation email (non-blocking)
+    const user = await getPrisma().user.findUnique({
+      where: { id: payload.userId },
+      include: { profile: true },
+    })
+    if (user) {
+      const customerName = user.profile?.firstName || user.email.split('@')[0] || 'Customer'
+      sendPaymentConfirmationEmail(user.email, customerName, payment.orderId, payment.amount, payment.currency).catch(err => {
+        console.error('Failed to send payment confirmation email:', err)
       })
 
-      return NextResponse.json({
-        success: true,
-        orderId: payment.orderId,
-        message: 'Payment verified successfully',
+      // Create in-app notification
+      await getPrisma().notification.create({
+        data: {
+          userId: user.id,
+          type: 'PAYMENT_SUCCESSFUL',
+          title: 'Payment Successful',
+          message: `Your payment of GHS ${payment.amount.toFixed(2)} for order #${payment.orderId.slice(0, 8)} has been confirmed.`,
+        },
+      }).catch(err => {
+        console.error('Failed to create notification:', err)
       })
+    }
+
+    return NextResponse.json({
+      success: true,
+      orderId: payment.orderId,
+      message: 'Payment verified successfully',
+    })
   } catch (error) {
     console.error('Error verifying payment:', error)
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 })

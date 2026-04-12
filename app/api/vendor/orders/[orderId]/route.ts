@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { getPrisma } from '@/lib/prisma'
 import { verifyToken } from '@/lib/auth-middleware'
+import { sendOrderStatusUpdateEmail } from '@/lib/email'
 
 export const dynamic = 'force-dynamic'
 
@@ -183,6 +184,24 @@ export async function PATCH(
       where: { id: orderId },
       data: { status },
     })
+
+    // Get customer info for email notification
+    const orderWithUser = await getPrisma().order.findUnique({
+      where: { id: orderId },
+      include: {
+        user: {
+          select: { email: true, profile: true },
+        },
+      },
+    })
+
+    // Send status update email (non-blocking)
+    if (orderWithUser?.user) {
+      const customerName = orderWithUser.user.profile?.firstName || orderWithUser.user.email.split('@')[0] || 'Customer'
+      sendOrderStatusUpdateEmail(orderWithUser.user.email, customerName, orderId, status).catch(err => {
+        console.error('Failed to send order status update email:', err)
+      })
+    }
 
     return NextResponse.json({
       order: {
