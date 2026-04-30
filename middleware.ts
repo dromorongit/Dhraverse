@@ -2,6 +2,8 @@ import { NextResponse } from 'next/server'
 import type { NextRequest } from 'next/server'
 import { verifyToken, type Role } from './lib/auth-middleware'
 
+export const runtime = 'nodejs'
+
 export async function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl
 
