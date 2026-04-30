@@ -1,9 +1,9 @@
 // Email notification service using Brevo API
-// Refined professional templates for Dhraverse Phase 8
+// Refined professional templates for Dhream Market Phase 8
 
 const BREVO_API_KEY = process.env.BREVO_API_KEY
-const SENDER_EMAIL = process.env.BREVO_SENDER_EMAIL || 'noreply@dhraverse.com'
-const SENDER_NAME = process.env.BREVO_SENDER_NAME || 'Dhraverse'
+const SENDER_EMAIL = process.env.BREVO_SENDER_EMAIL || 'noreply@dhreamarket.com'
+const SENDER_NAME = process.env.BREVO_SENDER_NAME || 'Dhream Market'
 
 interface EmailParams {
   to: string
@@ -56,7 +56,7 @@ function getEmailTemplate(content: string, footerText = '') {
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Dhraverse</title>
+  <title>Dhream Market</title>
 </head>
 <body style="margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif; background-color: #f8f9fa;">
     <table width="100%" cellpadding="0" cellspacing="0" style="background-color: #f8f9fa; padding: 20px 0;">
@@ -66,7 +66,7 @@ function getEmailTemplate(content: string, footerText = '') {
             <!-- Header -->
             <tr>
               <td style="padding: 24px; border-bottom: 1px solid #e5e7eb;">
-                <h1 style="margin: 0; font-size: 24px; font-weight: 600; color: #1a1a2e;">Dhraverse</h1>
+                <h1 style="margin: 0; font-size: 24px; font-weight: 600; color: #1a1a2e;">Dhream Market</h1>
                 <p style="margin: 4px 0 0 0; font-size: 14px; color: #6b7280;">The Smart Commerce Ecosystem</p>
               </td>
             </tr>
@@ -80,10 +80,10 @@ function getEmailTemplate(content: string, footerText = '') {
             <tr>
               <td style="padding: 24px; border-top: 1px solid #e5e7eb; background-color: #f9fafb; border-radius: 0 0 8px 8px;">
                 <p style="margin: 0; font-size: 12px; color: #6b7280; text-align: center;">
-                  ${footerText || 'This is an automated message from Dhraverse. Please do not reply to this email.'}
+                  ${footerText || 'This is an automated message from Dhream Market. Please do not reply to this email.'}
                 </p>
                 <p style="margin: 8px 0 0 0; font-size: 12px; color: #9ca3af; text-align: center;">
-                  &copy; 2026 Dhraverse. All rights reserved.
+                  &copy; 2026 Dhream Market. All rights reserved.
                 </p>
               </td>
             </tr>
@@ -125,13 +125,13 @@ export async function sendOrderConfirmationEmail(
     </table>
     <p style="margin: 0; font-size: 14px; color: #6b7280;">We'll notify you when your order is shipped. You can track your order status in your account.</p>
   `
-  const htmlContent = getEmailTemplate(content, 'Questions? Contact us at support@dhraverse.com')
+  const htmlContent = getEmailTemplate(content, 'Questions? Contact us at support@dhreamarket.com')
   
   return sendEmail({
     to: customerEmail,
     subject,
     htmlContent,
-    textContent: `Dear ${customerName}, your order #${orderId.slice(0, 8)} has been confirmed. Total: ${currency} ${total.toFixed(2)}. Thank you for shopping with Dhraverse!`
+    textContent: `Dear ${customerName}, your order #${orderId.slice(0, 8)} has been confirmed. Total: ${currency} ${total.toFixed(2)}. Thank you for shopping with Dhream Market!`
   })
 }
 
@@ -162,9 +162,9 @@ export async function sendPaymentConfirmationEmail(
         <td style="padding: 12px; border: 1px solid #e5e7eb;"><span style="background-color: #dcfce7; color: #16a34a; padding: 4px 8px; border-radius: 4px; font-size: 12px; font-weight: 500;">Paid</span></td>
       </tr>
     </table>
-    <p style="margin: 0; font-size: 14px; color: #6b7280;">Thank you for shopping with Dhraverse!</p>
+    <p style="margin: 0; font-size: 14px; color: #6b7280;">Thank you for shopping with Dhream Market!</p>
   `
-  const htmlContent = getEmailTemplate(content, 'Questions? Contact us at support@dhraverse.com')
+  const htmlContent = getEmailTemplate(content, 'Questions? Contact us at support@dhreamarket.com')
   
   return sendEmail({
     to: customerEmail,
@@ -222,9 +222,9 @@ export async function sendOrderStatusUpdateEmail(
         </td>
       </tr>
     </table>
-    <p style="margin: 0; font-size: 14px; color: #6b7280;">Thank you for shopping with Dhraverse!</p>
+    <p style="margin: 0; font-size: 14px; color: #6b7280;">Thank you for shopping with Dhream Market!</p>
   `
-  const htmlContent = getEmailTemplate(content, 'Questions? Contact us at support@dhraverse.com')
+  const htmlContent = getEmailTemplate(content, 'Questions? Contact us at support@dhreamarket.com')
   
   return sendEmail({
     to: customerEmail,

@@ -1,4 +1,4 @@
-// Currency configuration for Dhraverse
+// Currency configuration for Dhream Market
 export const DEFAULT_CURRENCY = 'GHS'
 export const CURRENCY_SYMBOLS = {
   GHS: 'GH₵',

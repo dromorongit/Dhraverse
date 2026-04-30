@@ -1,6 +1,6 @@
 export const metadata = {
-  title: 'Privacy Policy - Dhraverse',
-  description: 'Dhraverse Privacy Policy - How we protect and handle your data.',
+  title: 'Privacy Policy - Dhream Market',
+  description: 'Dhream Market Privacy Policy - How we protect and handle your data.',
 }
 
 export default function PrivacyPolicyPage() {
@@ -13,11 +13,11 @@ export default function PrivacyPolicyPage() {
 
         <section className="mb-8">
           <h2 className="text-2xl font-semibold text-gray-900 mb-4">1. Introduction</h2>
-          <p className="text-gray-600 mb-4">
-            Welcome to Dhraverse. We are committed to protecting your privacy and ensuring you have a 
-            positive experience using our platform. This Privacy Policy explains how we collect, use, 
-            disclose, and safeguard your information when you use our marketplace platform.
-          </p>
+           <p className="text-gray-600 mb-4">
+             Welcome to Dhream Market. We are committed to protecting your privacy and ensuring you have a
+             positive experience using our platform. This Privacy Policy explains how we collect, use,
+             disclose, and safeguard your information when you use our marketplace platform.
+           </p>
         </section>
 
         <section className="mb-8">

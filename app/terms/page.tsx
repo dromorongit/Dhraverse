@@ -1,6 +1,6 @@
 export const metadata = {
-  title: 'Terms and Conditions - Dhraverse',
-  description: 'Dhraverse Terms and Conditions - Platform usage terms and conditions.',
+  title: 'Terms and Conditions - Dhream Market',
+  description: 'Dhream Market Terms and Conditions - Platform usage terms and conditions.',
 }
 
 export default function TermsAndConditionsPage() {
@@ -13,20 +13,20 @@ export default function TermsAndConditionsPage() {
 
         <section className="mb-8">
           <h2 className="text-2xl font-semibold text-gray-900 mb-4">1. Acceptance of Terms</h2>
-          <p className="text-gray-600 mb-4">
-            By accessing and using Dhraverse, you accept and agree to be bound by the terms and 
-            provisions of this agreement. If you do not agree to these terms, please do not use 
-            our platform.
-          </p>
+           <p className="text-gray-600 mb-4">
+             By accessing and using Dhream Market, you accept and agree to be bound by the terms and
+             provisions of this agreement. If you do not agree to these terms, please do not use
+             our platform.
+           </p>
         </section>
 
         <section className="mb-8">
           <h2 className="text-2xl font-semibold text-gray-900 mb-4">2. Platform Description</h2>
-          <p className="text-gray-600 mb-4">
-            Dhraverse is an online marketplace platform that connects vendors with customers in Ghana. 
-            We provide the technology and infrastructure for e-commerce transactions but are not 
-            directly involved in the sale of goods between vendors and customers.
-          </p>
+           <p className="text-gray-600 mb-4">
+             Dhream Market is an online marketplace platform that connects vendors with customers in Ghana. 
+             We provide the technology and infrastructure for e-commerce transactions but are not 
+             directly involved in the sale of goods between vendors and customers.
+           </p>
         </section>
 
         <section className="mb-8">
@@ -118,9 +118,9 @@ export default function TermsAndConditionsPage() {
 
         <section className="mb-8">
           <h2 className="text-2xl font-semibold text-gray-900 mb-4">10. Intellectual Property</h2>
-          <ul className="list-disc pl-6 text-gray-600 mb-4 space-y-2">
-            <li>All content and materials on Dhraverse are protected by intellectual property rights</li>
-            <li>You may not copy, modify, or distribute our platform without permission</li>
+           <ul className="list-disc pl-6 text-gray-600 mb-4 space-y-2">
+             <li>All content and materials on Dhream Market are protected by intellectual property rights</li>
+             <li>You may not copy, modify, or distribute our platform without permission</li>
             <li>Vendors retain ownership of their product images and descriptions</li>
             <li>You grant us license to use content you submit for platform purposes</li>
           </ul>
@@ -138,10 +138,10 @@ export default function TermsAndConditionsPage() {
 
         <section className="mb-8">
           <h2 className="text-2xl font-semibold text-gray-900 mb-4">12. Indemnification</h2>
-          <p className="text-gray-600 mb-4">
-            You agree to indemnify and hold Dhraverse harmless from any claims, damages, losses, 
-            or expenses arising from your use of the platform or violation of these terms.
-          </p>
+           <p className="text-gray-600 mb-4">
+             You agree to indemnify and hold Dhream Market harmless from any claims, damages, losses, 
+             or expenses arising from your use of the platform or violation of these terms.
+           </p>
         </section>
 
         <section className="mb-8">
@@ -171,8 +171,8 @@ export default function TermsAndConditionsPage() {
         <section className="mb-8">
           <h2 className="text-2xl font-semibold text-gray-900 mb-4">16. Contact Information</h2>
           <p className="text-gray-600 mb-4">
-            For questions about these Terms and Conditions, please contact us through our 
-            Contact page or email us at support@dhraverse.com.
+             For questions about these Terms and Conditions, please contact us through our 
+             Contact page or email us at support@dhreamarket.com.
           </p>
         </section>
       </div>

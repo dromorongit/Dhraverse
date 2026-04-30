@@ -1,6 +1,6 @@
-# Dhraverse - Phase 1 Marketplace Foundation
-
-Dhraverse is a premium, scalable marketplace foundation for digital trade. This Phase 1 implementation provides a rock-solid base for future B2B, B2C, and P2P commerce features.
+# Dhream Market - Phase 1 Marketplace Foundation
+ 
+Dhream Market is a premium, scalable marketplace foundation for digital trade. This Phase 1 implementation provides a rock-solid base for future B2B, B2C, and P2P commerce features.
 
 ## Features
 

@@ -4,11 +4,11 @@ import { Navbar } from '@/components/Navbar'
 import { Footer } from '@/components/Footer'
 
 export const metadata: Metadata = {
-  title: 'Dhraverse - Powering Digital Trade',
+  title: 'Dhream Market - Powering Digital Trade',
   description: 'The Smart Commerce Ecosystem',
-  icons: {
-    icon: '/assets/images/Dhraverselogo.PNG',
-  },
+   icons: {
+     icon: '/assets/images/dhreammarket.png',
+   },
 }
 
 export default function RootLayout({

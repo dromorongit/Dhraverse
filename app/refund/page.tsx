@@ -1,6 +1,6 @@
 export const metadata = {
-  title: 'Refund and Return Policy - Dhraverse',
-  description: 'Dhraverse Refund and Return Policy - Understanding our return and refund processes.',
+  title: 'Refund and Return Policy - Dhream Market',
+  description: 'Dhream Market Refund and Return Policy - Understanding our return and refund processes.',
 }
 
 export default function RefundPolicyPage() {
@@ -13,11 +13,11 @@ export default function RefundPolicyPage() {
 
         <section className="mb-8">
           <h2 className="text-2xl font-semibold text-gray-900 mb-4">1. Overview</h2>
-          <p className="text-gray-600 mb-4">
-            This Refund and Return Policy outlines the guidelines for returning products and 
-            requesting refunds on the Dhraverse marketplace. We aim to provide a fair and 
-            transparent process for all customers while respecting vendor policies.
-          </p>
+           <p className="text-gray-600 mb-4">
+             This Refund and Return Policy outlines the guidelines for returning products and 
+             requesting refunds on the Dhream Market marketplace. We aim to provide a fair and 
+             transparent process for all customers while respecting vendor policies.
+           </p>
         </section>
 
         <section className="mb-8">

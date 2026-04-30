@@ -132,13 +132,13 @@ export function Navbar() {
           <div className="flex">
             <div className="flex-shrink-0 flex items-center">
               <Link href="/" className="flex items-center space-x-2" onClick={closeMobileMenu}>
-                <Image
-                  src="/assets/images/Dhraverselogo.PNG"
-                  alt="Dhraverse Logo"
-                  width={64}
-                  height={64}
-                />
-                <span className="text-2xl font-bold text-blue-600">Dhraverse</span>
+                 <Image
+                   src="/assets/images/dhreammarket.png"
+                   alt="Dhream Market Logo"
+                   width={64}
+                   height={64}
+                 />
+                <span className="text-2xl font-bold text-blue-600">Dhream Market</span>
               </Link>
             </div>
             <div className="hidden sm:ml-6 sm:flex sm:space-x-8">

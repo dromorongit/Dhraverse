@@ -1,22 +1,22 @@
 export const metadata = {
-  title: 'About Us - Dhraverse',
-  description: 'Learn about Dhraverse - The Smart Commerce Ecosystem powering digital trade in Ghana.',
+  title: 'About Us - Dhream Market',
+  description: 'Learn about Dhream Market - The Smart Commerce Ecosystem powering digital trade in Ghana.',
 }
 
 export default function AboutPage() {
   return (
     <div className="max-w-4xl mx-auto py-12 px-4 sm:px-6 lg:px-8">
-      <div className="prose prose-lg max-w-none">
-        <h1 className="text-3xl font-bold text-gray-900 mb-8">About Dhraverse</h1>
+         <div className="prose prose-lg max-w-none">
+           <h1 className="text-3xl font-bold text-gray-900 mb-8">About Dhream Market</h1>
         
         <section className="mb-8">
           <h2 className="text-2xl font-semibold text-gray-900 mb-4">Who We Are</h2>
-          <p className="text-gray-600 mb-4">
-            Dhraverse is Ghana's premier digital marketplace, connecting vendors and customers 
-            through a seamless, secure, and modern e-commerce platform. We are dedicated to 
-            powering digital trade across Ghana and beyond, making it easier for businesses to 
-            reach customers and for customers to discover quality products.
-          </p>
+             <p className="text-gray-600 mb-4">
+             Dhream Market is Ghana's premier digital marketplace, connecting vendors and customers 
+             through a seamless, secure, and modern e-commerce platform. We are dedicated to 
+             powering digital trade across Ghana and beyond, making it easier for businesses to 
+             reach customers and for customers to discover quality products.
+           </p>
         </section>
 
         <section className="mb-8">
@@ -69,7 +69,7 @@ export default function AboutPage() {
         </section>
 
         <section className="mb-8">
-          <h2 className="text-2xl font-semibold text-gray-900 mb-4">Why Choose Dhraverse</h2>
+           <h2 className="text-2xl font-semibold text-gray-900 mb-4">Why Choose Dhream Market</h2>
           <ul className="list-disc pl-6 text-gray-600 mb-4 space-y-2">
             <li><strong>Ghana-First:</strong> Built specifically for the Ghanaian market with local payment methods</li>
             <li><strong>Secure Payments:</strong> Powered by Paystack for reliable and safe transactions</li>
@@ -81,12 +81,12 @@ export default function AboutPage() {
 
         <section className="mb-8">
           <h2 className="text-2xl font-semibold text-gray-900 mb-4">Our Story</h2>
-          <p className="text-gray-600 mb-4">
-            Dhraverse was founded with the vision of creating a trusted online marketplace that 
-            serves the unique needs of Ghanaian businesses and consumers. We recognized the need 
-            for a platform that understands local commerce while offering the modern technology 
-            that online shopping demands.
-          </p>
+           <p className="text-gray-600 mb-4">
+             Dhream Market was founded with the vision of creating a trusted online marketplace that 
+             serves the unique needs of Ghanaian businesses and consumers. We recognized the need 
+             for a platform that understands local commerce while offering the modern technology 
+             that online shopping demands.
+           </p>
           <p className="text-gray-600 mb-4">
             Today, we continue to grow and evolve, adding new features and services that make 
             online shopping better for everyone. We are committed to being the go-to platform 
@@ -101,11 +101,11 @@ export default function AboutPage() {
             platform, a customer with questions, or a potential partner, reach out to us 
             through our Contact page.
           </p>
-          <p className="text-gray-600 mb-4">
-            <strong>Email:</strong> support@dhraverse.com<br />
-            <strong>Phone:</strong> Available on our Contact page<br />
-            <strong>Address:</strong> Accra, Ghana
-          </p>
+             <p className="text-gray-600 mb-4">
+             <strong>Email:</strong> support@dhreamarket.com<br />
+             <strong>Phone:</strong> Available on our Contact page<br />
+             <strong>Address:</strong> Accra, Ghana
+           </p>
         </section>
 
         <section className="mb-8">

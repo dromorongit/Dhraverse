@@ -5,12 +5,12 @@ export function Footer() {
     <footer className="bg-gray-50 border-t">
       <div className="max-w-7xl mx-auto py-12 px-4 sm:px-6 lg:px-8">
         <div className="grid grid-cols-1 md:grid-cols-4 gap-8">
-          <div className="col-span-1 md:col-span-2">
-            <h3 className="text-lg font-semibold text-gray-900">Dhraverse</h3>
-            <p className="mt-2 text-sm text-gray-600">
-              Powering Digital Trade - The Smart Commerce Ecosystem
-            </p>
-          </div>
+           <div className="col-span-1 md:col-span-2">
+             <h3 className="text-lg font-semibold text-gray-900">Dhream Market</h3>
+             <p className="mt-2 text-sm text-gray-600">
+               Powering Digital Trade - The Smart Commerce Ecosystem
+             </p>
+           </div>
           <div>
             <h4 className="text-sm font-semibold text-gray-900 uppercase tracking-wider">
               Platform
@@ -48,9 +48,9 @@ export function Footer() {
         </div>
         <div className="mt-8 border-t border-gray-200 pt-8">
           <div className="flex flex-col md:flex-row justify-between items-center gap-4">
-            <p className="text-base text-gray-400">
-              &copy; 2026 Dhraverse. All rights reserved.
-            </p>
+             <p className="text-base text-gray-400">
+               &copy; 2026 Dhream Market. All rights reserved.
+             </p>
             <div className="flex gap-4 text-sm">
               <Link href="/privacy" className="text-gray-400 hover:text-gray-600">
                 Privacy Policy

@@ -26,10 +26,62 @@ interface RecentItem {
   isVerified?: boolean
 }
 
+interface AdminDashboardProps {
+  stats: PlatformStats | null
+  recentOrders: Array<{
+    id: string
+    createdAt: string
+    user: {
+      email: string
+      role: string
+    }
+    total: number
+  }>
+  recentUsers: Array<{
+    id: string
+    email: string
+    role: string
+    createdAt: string
+  }>
+  recentVendors: Array<{
+    id: string
+    email: string
+    role: string
+    createdAt: string
+    store: {
+      name: string
+    } | null
+  }>
+}
+
 export default function AdminDashboard() {
   const [stats, setStats] = useState<PlatformStats | null>(null)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
+  const [recentOrders, setRecentOrders] = useState<Array<{
+    id: string
+    createdAt: string
+    user: {
+      email: string
+      role: string
+    }
+    total: number
+  }>>([])
+  const [recentUsers, setRecentUsers] = useState<Array<{
+    id: string
+    email: string
+    role: string
+    createdAt: string
+  }>>([])
+  const [recentVendors, setRecentVendors] = useState<Array<{
+    id: string
+    email: string
+    role: string
+    createdAt: string
+    store: {
+      name: string
+    } | null
+  }>>([])
 
   const fetchStats = useCallback(async () => {
     try {
@@ -43,6 +95,9 @@ export default function AdminDashboard() {
       }
       
       setStats(data.stats)
+      setRecentOrders(data.recentOrders)
+      setRecentUsers(data.recentUsers)
+      setRecentVendors(data.recentVendors)
     } catch (err) {
       setError('Failed to fetch stats')
       console.error(err)
@@ -234,98 +289,205 @@ export default function AdminDashboard() {
           </Card>
         </div>
 
-        {/* Quick Links */}
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-          <Card>
-            <CardHeader>
-              <h3 className="text-lg font-semibold text-gray-900">Quick Actions</h3>
-            </CardHeader>
-            <CardContent>
-              <div className="grid grid-cols-2 gap-4">
-                <a
-                  href="/dashboard/admin/users"
-                  className="p-4 bg-gray-50 rounded-lg hover:bg-gray-100 transition-colors"
-                >
-                  <p className="font-medium text-gray-900">Manage Users</p>
-                  <p className="text-sm text-gray-600">View and manage platform users</p>
-                </a>
-                <a
-                  href="/dashboard/admin/vendors"
-                  className="p-4 bg-gray-50 rounded-lg hover:bg-gray-100 transition-colors"
-                >
-                  <p className="font-medium text-gray-900">Manage Vendors</p>
-                  <p className="text-sm text-gray-600">Verify and manage vendor stores</p>
-                </a>
-                <a
-                  href="/dashboard/admin/products"
-                  className="p-4 bg-gray-50 rounded-lg hover:bg-gray-100 transition-colors"
-                >
-                  <p className="font-medium text-gray-900">Manage Products</p>
-                  <p className="text-sm text-gray-600">Oversee platform products</p>
-                </a>
-                <a
-                  href="/dashboard/admin/orders"
-                  className="p-4 bg-gray-50 rounded-lg hover:bg-gray-100 transition-colors"
-                >
-                  <p className="font-medium text-gray-900">View Orders</p>
-                  <p className="text-sm text-gray-600">Track all platform orders</p>
-                </a>
-                <a
-                  href="/dashboard/admin/payments"
-                  className="p-4 bg-gray-50 rounded-lg hover:bg-gray-100 transition-colors"
-                >
-                  <p className="font-medium text-gray-900">View Payments</p>
-                  <p className="text-sm text-gray-600">Payment records</p>
-                </a>
-                <a
-                  href="/dashboard/admin/categories"
-                  className="p-4 bg-gray-50 rounded-lg hover:bg-gray-100 transition-colors"
-                >
-                  <p className="font-medium text-gray-900">Categories</p>
-                  <p className="text-sm text-gray-600">Manage categories</p>
-                </a>
-              </div>
-            </CardContent>
-          </Card>
+         {/* Quick Links */}
+         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+           <Card>
+             <CardHeader>
+               <h3 className="text-lg font-semibold text-gray-900">Quick Actions</h3>
+             </CardHeader>
+             <CardContent>
+               <div className="grid grid-cols-2 gap-4">
+                 <a
+                   href="/dashboard/admin/users"
+                   className="p-4 bg-gray-50 rounded-lg hover:bg-gray-100 transition-colors"
+                 >
+                   <p className="font-medium text-gray-900">Manage Users</p>
+                   <p className="text-sm text-gray-600">View and manage platform users</p>
+                 </a>
+                 <a
+                   href="/dashboard/admin/vendors"
+                   className="p-4 bg-gray-50 rounded-lg hover:bg-gray-100 transition-colors"
+                 >
+                   <p className="font-medium text-gray-900">Manage Vendors</p>
+                   <p className="text-sm text-gray-600">Verify and manage vendor stores</p>
+                 </a>
+                 <a
+                   href="/dashboard/admin/products"
+                   className="p-4 bg-gray-50 rounded-lg hover:bg-gray-100 transition-colors"
+                 >
+                   <p className="font-medium text-gray-900">Manage Products</p>
+                   <p className="text-sm text-gray-600">Oversee platform products</p>
+                 </a>
+                 <a
+                   href="/dashboard/admin/orders"
+                   className="p-4 bg-gray-50 rounded-lg hover:bg-gray-100 transition-colors"
+                 >
+                   <p className="font-medium text-gray-900">View Orders</p>
+                   <p className="text-sm text-gray-600">Track all platform orders</p>
+                 </a>
+                 <a
+                   href="/dashboard/admin/payments"
+                   className="p-4 bg-gray-50 rounded-lg hover:bg-gray-100 transition-colors"
+                 >
+                   <p className="font-medium text-gray-900">View Payments</p>
+                   <p className="text-sm text-gray-600">Payment records</p>
+                 </a>
+                 <a
+                   href="/dashboard/admin/categories"
+                   className="p-4 bg-gray-50 rounded-lg hover:bg-gray-100 transition-colors"
+                 >
+                   <p className="font-medium text-gray-900">Categories</p>
+                   <p className="text-sm text-gray-600">Manage categories</p>
+                 </a>
+               </div>
+             </CardContent>
+           </Card>
 
-          <Card>
-            <CardHeader>
-              <h3 className="text-lg font-semibold text-gray-900">Platform Status</h3>
-            </CardHeader>
-            <CardContent>
-              <div className="space-y-4">
-                <div className="flex items-center justify-between p-3 bg-green-50 rounded-lg">
-                  <div className="flex items-center">
-                    <div className="w-3 h-3 bg-green-500 rounded-full mr-3"></div>
-                    <span className="text-gray-700">Database</span>
-                  </div>
-                  <span className="text-green-700 text-sm font-medium">Connected</span>
-                </div>
-                <div className="flex items-center justify-between p-3 bg-green-50 rounded-lg">
-                  <div className="flex items-center">
-                    <div className="w-3 h-3 bg-green-500 rounded-full mr-3"></div>
-                    <span className="text-gray-700">API Services</span>
-                  </div>
-                  <span className="text-green-700 text-sm font-medium">Operational</span>
-                </div>
-                <div className="flex items-center justify-between p-3 bg-green-50 rounded-lg">
-                  <div className="flex items-center">
-                    <div className="w-3 h-3 bg-green-500 rounded-full mr-3"></div>
-                    <span className="text-gray-700">Payment Gateway</span>
-                  </div>
-                  <span className="text-green-700 text-sm font-medium">Active</span>
-                </div>
-                <div className="flex items-center justify-between p-3 bg-blue-50 rounded-lg">
-                  <div className="flex items-center">
-                    <div className="w-3 h-3 bg-blue-500 rounded-full mr-3"></div>
-                    <span className="text-gray-700">Platform Version</span>
-                  </div>
-                  <span className="text-blue-700 text-sm font-medium">Phase 7</span>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-        </div>
+           <Card>
+             <CardHeader>
+               <h3 className="text-lg font-semibold text-gray-900">Platform Status</h3>
+             </CardHeader>
+             <CardContent>
+               <div className="space-y-4">
+                 <div className="flex items-center justify-between p-3 bg-green-50 rounded-lg">
+                   <div className="flex items-center">
+                     <div className="w-3 h-3 bg-green-500 rounded-full mr-3"></div>
+                     <span className="text-gray-700">Database</span>
+                   </div>
+                   <span className="text-green-700 text-sm font-medium">Connected</span>
+                 </div>
+                 <div className="flex items-center justify-between p-3 bg-green-50 rounded-lg">
+                   <div className="flex items-center">
+                     <div className="w-3 h-3 bg-green-500 rounded-full mr-3"></div>
+                     <span className="text-gray-700">API Services</span>
+                   </div>
+                   <span className="text-green-700 text-sm font-medium">Operational</span>
+                 </div>
+                 <div className="flex items-center justify-between p-3 bg-green-50 rounded-lg">
+                   <div className="flex items-center">
+                     <div className="w-3 h-3 bg-green-500 rounded-full mr-3"></div>
+                     <span className="text-gray-700">Payment Gateway</span>
+                   </div>
+                   <span className="text-green-700 text-sm font-medium">Active</span>
+                 </div>
+                 <div className="flex items-center justify-between p-3 bg-blue-50 rounded-lg">
+                   <div className="flex items-center">
+                     <div className="w-3 h-3 bg-blue-500 rounded-full mr-3"></div>
+                     <span className="text-gray-700">Platform Version</span>
+                   </div>
+                   <span className="text-blue-700 text-sm font-medium">Phase 7</span>
+                 </div>
+               </div>
+             </CardContent>
+           </Card>
+         </div>
+
+         {/* Recent Activity */}
+         <div className="mt-8">
+           <Card>
+             <CardHeader>
+               <h3 className="text-lg font-semibold text-gray-900">Recent Activity</h3>
+             </CardHeader>
+             <CardContent>
+               {loading ? (
+                 <div className="space-y-4">
+                   <div className="h-20 bg-gray-100 rounded-lg animate-pulse"></div>
+                   <div className="h-20 bg-gray-100 rounded-lg animate-pulse"></div>
+                   <div className="h-20 bg-gray-100 rounded-lg animate-pulse"></div>
+                 </div>
+               ) : (
+                 <div className="space-y-6">
+                   <div>
+                     <h4 className="font-medium text-gray-900 mb-2">Recent Orders</h4>
+                     {recentOrders.length === 0 ? (
+                       <p className="text-gray-500 text-center py-4">No recent orders</p>
+                     ) : (
+                       <div className="space-y-3">
+                         {recentOrders.map((order) => (
+                           <div key={order.id} className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
+                             <div className="flex-1">
+                               <p className="text-sm font-medium text-gray-900">Order #{order.id.slice(-8)}</p>
+                               <p className="text-xs text-gray-600">
+                                 {new Date(order.createdAt).toLocaleDateString('en-GH', {
+                                   year: 'numeric',
+                                   month: 'short',
+                                   day: 'numeric'
+                                 })}
+                               </p>
+                             </div>
+                             <div className="text-right">
+                               <span className={`inline-block text-xs px-2 py-1 rounded ${
+                                 order.total > 0 ? 'bg-green-100 text-green-800' : 'bg-gray-100 text-gray-800'
+                               }`}>
+                                 GH₵ {order.total.toFixed(2)}
+                               </span>
+                             </div>
+                           </div>
+                         ))}
+                       </div>
+                     )}
+                   </div>
+                   <div>
+                     <h4 className="font-medium text-gray-900 mb-2">Recent Users</h4>
+                     {recentUsers.length === 0 ? (
+                       <p className="text-gray-500 text-center py-4">No recent users</p>
+                     ) : (
+                       <div className="space-y-3">
+                         {recentUsers.map((user) => (
+                           <div key={user.id} className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
+                             <div className="flex-1">
+                               <p className="text-sm font-medium text-gray-900">{user.email}</p>
+                               <p className="text-xs text-gray-600">
+                                 {user.role === 'ADMIN' ? '(Admin)' : user.role === 'VENDOR' ? '(Vendor)' : '(Customer)'}
+                               </p>
+                             </div>
+                             <div className="text-right">
+                               <p className="text-xs text-gray-600">
+                                 {new Date(user.createdAt).toLocaleDateString('en-GH', {
+                                   year: 'numeric',
+                                   month: 'short',
+                                   day: 'numeric'
+                                 })}
+                               </p>
+                             </div>
+                           </div>
+                         ))}
+                       </div>
+                     )}
+                   </div>
+                   <div>
+                     <h4 className="font-medium text-gray-900 mb-2">Recent Vendors</h4>
+                     {recentVendors.length === 0 ? (
+                       <p className="text-gray-500 text-center py-4">No recent vendors</p>
+                     ) : (
+                       <div className="space-y-3">
+                         {recentVendors.map((vendor) => (
+                           <div key={vendor.id} className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
+                             <div className="flex-1">
+                               <p className="text-sm font-medium text-gray-900">{vendor.email}</p>
+                               <p className="text-xs text-gray-600">
+                                 {vendor.store ? `Store: ${vendor.store.name}` : 'No store yet'}
+                               </p>
+                             </div>
+                             <div className="text-right">
+                               <p className="text-xs text-gray-600">
+                                 {new Date(vendor.createdAt).toLocaleDateString('en-GH', {
+                                   year: 'numeric',
+                                   month: 'short',
+                                   day: 'numeric'
+                                 })}
+                               </p>
+                             </div>
+                           </div>
+                         ))}
+                       </div>
+                     )}
+                   </div>
+                 </div>
+               )}
+             </CardContent>
+           </Card>
+         </div>
       </div>
     </div>
   )

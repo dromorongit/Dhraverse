@@ -118,10 +118,10 @@ export default function StoreManagement() {
             {store ? 'Manage Store' : 'Set Up Your Store'}
           </h1>
           <p className="text-gray-600 mt-2">
-            {store
-              ? 'Update your store information'
-              : 'Create your store profile to start selling on Dhraverse'
-            }
+             {store
+               ? 'Update your store information'
+               : 'Create your store profile to start selling on Dhream Market'
+             }
           </p>
         </div>
 
