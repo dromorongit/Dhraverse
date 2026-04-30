@@ -41,7 +41,7 @@ export async function GET(request: NextRequest) {
     }
 
     // Calculate total
-    const total = cart.items.reduce((sum, item) => sum + (item.product.price * item.quantity), 0)
+    const total = cart.items.reduce((sum: number, item: { product: { price: number }; quantity: number }) => sum + (item.product.price * item.quantity), 0)
 
     return NextResponse.json({
       cart: {
@@ -145,7 +145,7 @@ export async function POST(request: NextRequest) {
       },
     })
 
-    const total = updatedCart?.items.reduce((sum, item) => sum + (item.product.price * item.quantity), 0) || 0
+    const total = updatedCart?.items.reduce((sum: number, item: { product: { price: number }; quantity: number }) => sum + (item.product.price * item.quantity), 0) || 0
 
     return NextResponse.json({
       cart: {

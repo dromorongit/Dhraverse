@@ -76,11 +76,21 @@ export async function GET(request: NextRequest) {
 
     // Calculate average rating
     const avgRating = reviews.length > 0
-      ? reviews.reduce((sum, r) => sum + r.rating, 0) / reviews.length
+      ? reviews.reduce((sum: number, r: { rating: number }) => sum + r.rating, 0) / reviews.length
       : 0
 
     // Mask user identities for privacy
-    const maskedReviews = reviews.map(review => ({
+    const maskedReviews = reviews.map((review: { 
+      id: string; 
+      rating: number; 
+      comment: string | null; 
+      isVerified: boolean; 
+      createdAt: Date; 
+      user: { 
+        profile: { firstName: string | null } | null; 
+        email: string; 
+      } 
+    }) => ({
       id: review.id,
       rating: review.rating,
       comment: review.comment,

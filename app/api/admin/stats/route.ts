@@ -65,7 +65,7 @@ export async function GET(request: NextRequest) {
     ])
 
     // Calculate total revenue from paid orders
-    const totalRevenue = paidOrders.reduce((sum, order) => sum + order.total, 0)
+    const totalRevenue = paidOrders.reduce((accumulator: number, currentValue: { total: number }) => accumulator + currentValue.total, 0)
 
     // Count reviews and categories
     const [totalReviews, totalCategories] = await Promise.all([

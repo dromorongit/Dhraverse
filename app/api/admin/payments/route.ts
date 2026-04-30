@@ -61,7 +61,7 @@ export async function GET(request: NextRequest) {
       select: { amount: true },
     })
     
-    const totalRevenue = paidPayments.reduce((sum, p) => sum + p.amount, 0 as number)
+    const totalRevenue = paidPayments.reduce((accumulator: number, currentValue: { amount: number }) => accumulator + currentValue.amount, 0)
 
     // Payment status summary
     const summary = await prisma.payment.groupBy({

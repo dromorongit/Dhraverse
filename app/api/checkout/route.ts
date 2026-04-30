@@ -51,7 +51,7 @@ export async function POST(request: NextRequest) {
     }
 
     // Calculate total
-    const total = cart.items.reduce((sum, item) => sum + (item.product.price * item.quantity), 0)
+    const total = cart.items.reduce((sum: number, item: { product: { price: number }; quantity: number }) => sum + (item.product.price * item.quantity), 0)
 
     // Generate unique reference for the payment
     const reference = `DHV-${crypto.randomBytes(8).toString('hex').toUpperCase()}`
@@ -67,7 +67,7 @@ export async function POST(request: NextRequest) {
     }
 
     // Create order and payment record in a transaction
-    const result = await getPrisma().$transaction(async (prisma) => {
+    const result = await getPrisma().$transaction(async (prisma: any) => {
       // Create order in PENDING payment status (stock not deducted yet)
       const order = await prisma.order.create({
         data: {

@@ -35,14 +35,14 @@ export async function POST(request: NextRequest) {
       const isAbandoned = paymentStatus === 'abandoned'
       const failedStatus = isAbandoned ? 'CANCELLED' : 'FAILED'
       
-      await getPrisma().$transaction(async (prisma) => {
-        await prisma.payment.update({
-          where: { id: payment.id },
-          data: {
-            status: failedStatus,
-            message: isAbandoned ? 'Payment abandoned via webhook' : 'Payment failed via webhook',
-          },
-        })
+       await getPrisma().$transaction(async (prisma: any) => {
+         await prisma.payment.update({
+           where: { id: payment.id },
+           data: {
+             status: failedStatus,
+             message: isAbandoned ? 'Payment abandoned via webhook' : 'Payment failed via webhook',
+           },
+         })
 
         await prisma.order.update({
           where: { id: payment.orderId },
@@ -56,9 +56,9 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ received: true })
     }
 
-    // Payment was successful
-    await getPrisma().$transaction(async (prisma) => {
-        // Update payment status to PAID
+     // Payment was successful
+     await getPrisma().$transaction(async (prisma: any) => {
+         // Update payment status to PAID
         await prisma.payment.update({
           where: { id: payment.id },
           data: {

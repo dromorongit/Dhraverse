@@ -34,7 +34,7 @@ export async function GET(request: NextRequest) {
       })
     }
 
-    const productIds = store.products.map(p => p.id)
+    const productIds = store.products.map((p: { id: string }) => p.id)
     const productCount = productIds.length
 
     if (productIds.length === 0) {
@@ -78,7 +78,7 @@ export async function GET(request: NextRequest) {
       }
     })
 
-    const revenue = completedOrders.reduce((total, item) => {
+    const revenue = completedOrders.reduce((total: number, item: { price: number; quantity: number }) => {
       return total + (item.price * item.quantity)
     }, 0)
 
@@ -117,15 +117,15 @@ export async function GET(request: NextRequest) {
     })
 
     // Get product details for best sellers
-    const bestSellerIds = bestSellers.map(b => b.productId)
+    const bestSellerIds = bestSellers.map((b: { productId: string; _sum: { quantity: number } }) => b.productId)
     const bestSellerProducts = await getPrisma().product.findMany({
       where: { id: { in: bestSellerIds } },
       select: { id: true, name: true }
     })
 
-    const bestSellersWithNames = bestSellers.map(b => ({
+    const bestSellersWithNames = bestSellers.map((b: { productId: string; _sum: { quantity: number } }) => ({
       productId: b.productId,
-      productName: bestSellerProducts.find(p => p.id === b.productId)?.name || 'Unknown Product',
+      productName: bestSellerProducts.find((p: { id: string; name: string }) => p.id === b.productId)?.name || 'Unknown Product',
       totalSold: b._sum.quantity || 0
     }))
 

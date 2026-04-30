@@ -42,12 +42,12 @@ export async function POST(request: NextRequest) {
     
     // Check if payment was abandoned, cancelled, or failed
     if (paymentStatus !== 'success') {
-      // Payment failed, abandoned, or cancelled - mark as failed/cancelled
-      const isAbandoned = paymentStatus === 'abandoned'
-      const failedStatus = isAbandoned ? 'CANCELLED' : 'FAILED'
-      
-      await getPrisma().$transaction(async (prisma) => {
-        // Update payment status to FAILED or CANCELLED
+       // Payment failed, abandoned, or cancelled - mark as failed/cancelled
+       const isAbandoned = paymentStatus === 'abandoned'
+       const failedStatus = isAbandoned ? 'CANCELLED' : 'FAILED'
+       
+       await getPrisma().$transaction(async (prisma: any) => {
+         // Update payment status to FAILED or CANCELLED
         await prisma.payment.update({
           where: { id: payment.id },
           data: {
@@ -72,8 +72,8 @@ export async function POST(request: NextRequest) {
       }, { status: 400 })
     }
 
-    // Payment was successful - update payment and order status
-    await getPrisma().$transaction(async (prisma) => {
+     // Payment was successful - update payment and order status
+     await getPrisma().$transaction(async (prisma: any) => {
       // Update payment status to PAID
       await prisma.payment.update({
         where: { id: payment.id },
@@ -132,17 +132,17 @@ export async function POST(request: NextRequest) {
         console.error('Failed to send payment confirmation email:', err)
       })
 
-      // Create in-app notification
-      await getPrisma().notification.create({
-        data: {
-          userId: user.id,
-          type: 'PAYMENT_SUCCESSFUL',
-          title: 'Payment Successful',
-          message: `Your payment of GHS ${payment.amount.toFixed(2)} for order #${payment.orderId.slice(0, 8)} has been confirmed.`,
-        },
-      }).catch(err => {
-        console.error('Failed to create notification:', err)
-      })
+       // Create in-app notification
+       await getPrisma().notification.create({
+         data: {
+           userId: user.id,
+           type: 'PAYMENT_SUCCESSFUL',
+           title: 'Payment Successful',
+           message: `Your payment of GHS ${payment.amount.toFixed(2)} for order #${payment.orderId.slice(0, 8)} has been confirmed.`,
+         },
+       }).catch((err: any) => {
+         console.error('Failed to create notification:', err)
+       })
     }
 
     return NextResponse.json({

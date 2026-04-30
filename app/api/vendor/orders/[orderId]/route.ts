@@ -39,7 +39,7 @@ export async function GET(
       )
     }
 
-    const productIds = store.products.map(p => p.id)
+    const productIds = store.products.map((p: { id: string }) => p.id)
 
     // Fetch the order ensuring it contains vendor's products and is paid
     const order = await getPrisma().order.findFirst({
@@ -93,7 +93,7 @@ export async function GET(
 
     // Calculate vendor-specific totals (only their products)
     const vendorTotal = order.items.reduce(
-      (sum, item) => sum + item.price * item.quantity,
+      (sum: number, item: { price: number; quantity: number }) => sum + item.price * item.quantity,
       0
     )
 
@@ -157,7 +157,7 @@ export async function PATCH(
       )
     }
 
-    const productIds = store.products.map(p => p.id)
+    const productIds = store.products.map((p: { id: string }) => p.id)
 
     // Verify the order contains vendor's products and is paid
     const existingOrder = await getPrisma().order.findFirst({

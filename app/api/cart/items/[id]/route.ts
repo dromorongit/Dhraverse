@@ -65,7 +65,7 @@ export async function PATCH(request: NextRequest, { params }: { params: { id: st
       },
     })
 
-    const total = updatedCart?.items.reduce((sum, item) => sum + (item.product.price * item.quantity), 0) || 0
+    const total = updatedCart?.items.reduce((sum: number, item: { product: { price: number }; quantity: number }) => sum + (item.product.price * item.quantity), 0) || 0
 
     return NextResponse.json({
       cart: {
@@ -131,7 +131,7 @@ export async function DELETE(request: NextRequest, { params }: { params: { id: s
       },
     })
 
-    const total = updatedCart?.items.reduce((sum, item) => sum + (item.product.price * item.quantity), 0) || 0
+    const total = updatedCart?.items.reduce((sum: number, item: { product: { price: number }; quantity: number }) => sum + (item.product.price * item.quantity), 0) || 0
 
     return NextResponse.json({
       cart: {
