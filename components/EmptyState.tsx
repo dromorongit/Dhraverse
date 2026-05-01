@@ -1,4 +1,5 @@
 import { HTMLAttributes } from 'react'
+import Link from 'next/link'
 import { Button } from './Button'
 import { cn } from '@/lib/utils'
 
@@ -40,17 +41,16 @@ export function EmptyState({
       {description && (
         <p className="text-slate-500 text-sm max-w-sm mb-8">{description}</p>
       )}
-      {actionLabel && (actionHref || onAction) && (
-        <Button
-          variant="primary"
-          size="md"
-          asChild={!!actionHref}
-        >
-          {actionHref ? (
-            <a href={actionHref}>{actionLabel}</a>
-          ) : (
-            <button onClick={onAction}>{actionLabel}</button>
-          )}
+      {actionLabel && actionHref && (
+        <Link href={actionHref}>
+          <Button variant="primary" size="md">
+            {actionLabel}
+          </Button>
+        </Link>
+      )}
+      {actionLabel && onAction && !actionHref && (
+        <Button variant="primary" size="md" onClick={onAction}>
+          {actionLabel}
         </Button>
       )}
       {children}

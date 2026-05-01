@@ -7,7 +7,7 @@ import { Card, CardContent } from '@/components/Card'
 import { Button } from '@/components/Button'
 import { Badge } from '@/components/Badge'
 import { EmptyState } from '@/components/EmptyState'
-import { Skeleton } from '@/components/Skeleton'
+import { Skeleton, SkeletonCard } from '@/components/Skeleton'
 import { formatPrice } from '@/lib/currency'
 
 interface CartItem {
