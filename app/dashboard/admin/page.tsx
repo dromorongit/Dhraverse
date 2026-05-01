@@ -1,7 +1,11 @@
 'use client'
 
 import { useEffect, useState, useCallback } from 'react'
-import { Card, CardContent, CardHeader } from '@/components/Card'
+import { Card, CardContent } from '@/components/Card'
+import { Button } from '@/components/Button'
+import { Badge } from '@/components/Badge'
+import { EmptyState } from '@/components/EmptyState'
+import { Skeleton, SkeletonCard } from '@/components/Skeleton'
 
 interface PlatformStats {
   totalUsers: number
@@ -127,15 +131,16 @@ export default function AdminDashboard() {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-gray-50 py-8">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="animate-pulse">
-            <div className="h-8 bg-gray-200 rounded w-48 mb-8"></div>
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+      <div className="min-h-screen bg-slate-50">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+          <div className="animate-fade-in-up">
+            <div className="h-10 bg-slate-200 rounded-lg w-64 mb-8"></div>
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
               {[...Array(4)].map((_, i) => (
-                <div key={i} className="h-32 bg-gray-200 rounded"></div>
+                <SkeletonCard key={i} />
               ))}
             </div>
+            <SkeletonCard />
           </div>
         </div>
       </div>
@@ -144,350 +149,354 @@ export default function AdminDashboard() {
 
   if (error) {
     return (
-      <div className="min-h-screen bg-gray-50 py-8">
+      <div className="min-h-screen bg-slate-50 py-8">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="bg-red-50 border border-red-200 rounded-lg p-4">
-            <p className="text-red-800">{error}</p>
-            <button 
-              onClick={fetchStats}
-              className="mt-2 text-sm text-red-600 hover:text-red-800 underline"
-            >
-              Try again
-            </button>
-          </div>
+          <EmptyState
+            icon={
+              <svg className="w-12 h-12 text-red-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+              </svg>
+            }
+            title="Error Loading Dashboard"
+            description={error}
+          >
+            <Button onClick={fetchStats} variant="primary">
+              Try Again
+            </Button>
+          </EmptyState>
         </div>
       </div>
     )
   }
 
   return (
-    <div className="min-h-screen bg-gray-50 py-8">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="flex items-center justify-between mb-8">
-          <div>
-            <h1 className="text-3xl font-bold text-gray-900">Admin Dashboard</h1>
-            <p className="text-gray-600 mt-1">Platform overview and management</p>
-          </div>
-          <button
-            onClick={fetchStats}
-            className="px-4 py-2 bg-white border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50 transition-colors text-sm"
-          >
-            Refresh
-          </button>
+    <div className="min-h-screen bg-slate-50">
+      {/* Header */}
+      <div className="bg-gradient-to-br from-deep-navy to-purple-900 py-16 lg:py-24 relative overflow-hidden">
+        <div className="absolute inset-0">
+          <div className="absolute top-0 left-0 w-full h-full bg-gradient-to-tr from-royal-blue/20 to-transparent"></div>
+          <div className="absolute -top-40 -right-40 w-96 h-96 bg-premium-gold/10 rounded-full blur-3xl"></div>
+          <div className="absolute -bottom-40 -left-40 w-96 h-96 bg-royal-blue/10 rounded-full blur-3xl"></div>
         </div>
+        
+        <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="text-center text-white">
+            <Badge variant="premium" className="mb-4 mx-auto">
+              Platform Operations Console
+            </Badge>
+            <h1 className="text-4xl sm:text-5xl lg:text-6xl font-bold mb-4 tracking-tight">
+              Admin Dashboard
+            </h1>
+            <p className="text-lg sm:text-xl text-slate-300 max-w-2xl mx-auto">
+              Monitor platform health, manage users, and oversee marketplace operations with precision.
+            </p>
+          </div>
+        </div>
+      </div>
 
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 -mt-12 relative z-10">
         {/* Stats Cards */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
-          <Card>
-            <CardHeader>
-              <h3 className="text-lg font-semibold text-gray-900">Total Users</h3>
-            </CardHeader>
-            <CardContent>
-              <p className="text-3xl font-bold text-blue-600">
-                {stats?.totalUsers.toLocaleString() || 0}
-              </p>
-              <p className="text-sm text-gray-600">Registered accounts</p>
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+          <Card variant="elevated" className="hover:shadow-xl transition-all duration-300">
+            <CardContent className="p-6">
+              <div className="flex items-center gap-4">
+                <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-blue-500 to-cyan-600 flex items-center justify-center">
+                  <svg className="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" />
+                  </svg>
+                </div>
+                <div>
+                  <p className="text-sm text-slate-500">Total Users</p>
+                  <p className="text-2xl font-bold text-deep-navy">{stats?.totalUsers.toLocaleString() || 0}</p>
+                </div>
+              </div>
             </CardContent>
           </Card>
 
-          <Card>
-            <CardHeader>
-              <h3 className="text-lg font-semibold text-gray-900">Active Vendors</h3>
-            </CardHeader>
-            <CardContent>
-              <p className="text-3xl font-bold text-green-600">
-                {stats?.totalVendors.toLocaleString() || 0}
-              </p>
-              <p className="text-sm text-gray-600">
-                {stats?.verifiedVendors.toLocaleString() || 0} verified
-              </p>
+          <Card variant="elevated" className="hover:shadow-xl transition-all duration-300">
+            <CardContent className="p-6">
+              <div className="flex items-center gap-4">
+                <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-emerald-500 to-teal-600 flex items-center justify-center">
+                  <svg className="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" />
+                  </svg>
+                </div>
+                <div>
+                  <p className="text-sm text-slate-500">Active Vendors</p>
+                  <p className="text-2xl font-bold text-deep-navy">{stats?.totalVendors.toLocaleString() || 0}</p>
+                  <p className="text-xs text-emerald-600 font-medium">
+                    {stats?.verifiedVendors.toLocaleString() || 0} verified
+                  </p>
+                </div>
+              </div>
             </CardContent>
           </Card>
 
-          <Card>
-            <CardHeader>
-              <h3 className="text-lg font-semibold text-gray-900">Total Products</h3>
-            </CardHeader>
-            <CardContent>
-              <p className="text-3xl font-bold text-purple-600">
-                {stats?.totalProducts.toLocaleString() || 0}
-              </p>
-              <p className="text-sm text-gray-600">Listed items</p>
+          <Card variant="elevated" className="hover:shadow-xl transition-all duration-300">
+            <CardContent className="p-6">
+              <div className="flex items-center gap-4">
+                <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-purple-500 to-pink-600 flex items-center justify-center">
+                  <svg className="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4" />
+                  </svg>
+                </div>
+                <div>
+                  <p className="text-sm text-slate-500">Total Products</p>
+                  <p className="text-2xl font-bold text-deep-navy">{stats?.totalProducts.toLocaleString() || 0}</p>
+                  <p className="text-xs text-slate-500">Listed items</p>
+                </div>
+              </div>
             </CardContent>
           </Card>
 
-          <Card>
-            <CardHeader>
-              <h3 className="text-lg font-semibold text-gray-900">Total Orders</h3>
-            </CardHeader>
-            <CardContent>
-              <p className="text-3xl font-bold text-orange-600">
-                {stats?.totalOrders.toLocaleString() || 0}
-              </p>
-              <p className="text-sm text-gray-600">
-                {stats?.paidOrderCount.toLocaleString() || 0} paid
-              </p>
+          <Card variant="elevated" className="hover:shadow-xl transition-all duration-300">
+            <CardContent className="p-6">
+              <div className="flex items-center gap-4">
+                <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-amber-500 to-orange-600 flex items-center justify-center">
+                  <svg className="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-3 7h3m-3 4h3m-6-4h.01M9 16h.01" />
+                  </svg>
+                </div>
+                <div>
+                  <p className="text-sm text-slate-500">Total Orders</p>
+                  <p className="text-2xl font-bold text-deep-navy">{stats?.totalOrders.toLocaleString() || 0}</p>
+                  <p className="text-xs text-slate-500">{stats?.paidOrderCount.toLocaleString() || 0} paid</p>
+                </div>
+              </div>
             </CardContent>
           </Card>
         </div>
 
         {/* Revenue Card */}
-        <div className="grid grid-cols-1 lg:grid-cols-1 gap-6 mb-8">
-          <Card className="bg-gradient-to-r from-blue-600 to-blue-700">
-            <CardHeader className="bg-transparent">
-              <h3 className="text-lg font-semibold text-white">Total Platform Revenue</h3>
-            </CardHeader>
-            <CardContent className="bg-transparent">
-              <p className="text-4xl font-bold text-white">
-                {formatCurrency(stats?.totalRevenue || 0)}
-              </p>
-              <p className="text-sm text-blue-100 mt-1">
-                From {stats?.paidOrderCount.toLocaleString() || 0} paid orders
-              </p>
-            </CardContent>
-          </Card>
-        </div>
+        <Card variant="elevated" className="mb-8 overflow-hidden">
+          <div className="absolute inset-0 bg-gradient-to-br from-royal-blue/90 to-purple-900/90"></div>
+          <CardContent className="p-8 relative">
+            <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-6">
+              <div>
+                <h3 className="text-lg font-semibold text-white/90 mb-2">Total Platform Revenue</h3>
+                <p className="text-4xl sm:text-5xl font-bold text-white mb-2">
+                  {formatCurrency(stats?.totalRevenue || 0)}
+                </p>
+                <p className="text-slate-300">
+                  From {stats?.paidOrderCount.toLocaleString() || 0} paid orders
+                </p>
+              </div>
+              <div className="flex gap-3">
+                <Button variant="outline" size="sm" className="border-white/20 text-white hover:bg-white/10">
+                  Export Report
+                </Button>
+                <Button variant="outline" size="sm" className="border-white/20 text-white hover:bg-white/10" onClick={fetchStats}>
+                  Refresh
+                </Button>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
 
         {/* Quick Stats Row */}
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
-          <Card>
-            <CardHeader>
-              <h3 className="text-lg font-semibold text-gray-900">Categories</h3>
-            </CardHeader>
-            <CardContent>
-              <p className="text-2xl font-bold text-gray-700">
-                {stats?.totalCategories.toLocaleString() || 0}
-              </p>
-              <p className="text-sm text-gray-600">Product categories</p>
+          <Card variant="outline" className="hover:border-royal-blue/30 transition-colors">
+            <CardContent className="p-6">
+              <p className="text-sm text-slate-500 mb-1">Categories</p>
+              <p className="text-3xl font-bold text-deep-navy">{stats?.totalCategories.toLocaleString() || 0}</p>
+              <p className="text-sm text-slate-500 mt-1">Product categories</p>
             </CardContent>
           </Card>
 
-          <Card>
-            <CardHeader>
-              <h3 className="text-lg font-semibold text-gray-900">Reviews</h3>
-            </CardHeader>
-            <CardContent>
-              <p className="text-2xl font-bold text-gray-700">
-                {stats?.totalReviews.toLocaleString() || 0}
-              </p>
-              <p className="text-sm text-gray-600">Customer reviews</p>
+          <Card variant="outline" className="hover:border-royal-blue/30 transition-colors">
+            <CardContent className="p-6">
+              <p className="text-sm text-slate-500 mb-1">Reviews</p>
+              <p className="text-3xl font-bold text-deep-navy">{stats?.totalReviews.toLocaleString() || 0}</p>
+              <p className="text-sm text-slate-500 mt-1">Customer reviews</p>
             </CardContent>
           </Card>
 
-          <Card>
-            <CardHeader>
-              <h3 className="text-lg font-semibold text-gray-900">Verified Vendors</h3>
-            </CardHeader>
-            <CardContent>
-              <p className="text-2xl font-bold text-gray-700">
-                {stats?.verifiedVendors.toLocaleString() || 0}
-              </p>
-              <p className="text-sm text-gray-600">
+          <Card variant="outline" className="hover:border-royal-blue/30 transition-colors">
+            <CardContent className="p-6">
+              <p className="text-sm text-slate-500 mb-1">Verified Vendors</p>
+              <p className="text-3xl font-bold text-deep-navy">{stats?.verifiedVendors.toLocaleString() || 0}</p>
+              <p className="text-sm text-slate-500 mt-1">
                 {stats?.totalVendors ? Math.round((stats.verifiedVendors / stats.totalVendors) * 100) : 0}% of vendors
               </p>
             </CardContent>
           </Card>
         </div>
 
-         {/* Quick Links */}
-         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-           <Card>
-             <CardHeader>
-               <h3 className="text-lg font-semibold text-gray-900">Quick Actions</h3>
-             </CardHeader>
-             <CardContent>
-               <div className="grid grid-cols-2 gap-4">
-                 <a
-                   href="/dashboard/admin/users"
-                   className="p-4 bg-gray-50 rounded-lg hover:bg-gray-100 transition-colors"
-                 >
-                   <p className="font-medium text-gray-900">Manage Users</p>
-                   <p className="text-sm text-gray-600">View and manage platform users</p>
-                 </a>
-                 <a
-                   href="/dashboard/admin/vendors"
-                   className="p-4 bg-gray-50 rounded-lg hover:bg-gray-100 transition-colors"
-                 >
-                   <p className="font-medium text-gray-900">Manage Vendors</p>
-                   <p className="text-sm text-gray-600">Verify and manage vendor stores</p>
-                 </a>
-                 <a
-                   href="/dashboard/admin/products"
-                   className="p-4 bg-gray-50 rounded-lg hover:bg-gray-100 transition-colors"
-                 >
-                   <p className="font-medium text-gray-900">Manage Products</p>
-                   <p className="text-sm text-gray-600">Oversee platform products</p>
-                 </a>
-                 <a
-                   href="/dashboard/admin/orders"
-                   className="p-4 bg-gray-50 rounded-lg hover:bg-gray-100 transition-colors"
-                 >
-                   <p className="font-medium text-gray-900">View Orders</p>
-                   <p className="text-sm text-gray-600">Track all platform orders</p>
-                 </a>
-                 <a
-                   href="/dashboard/admin/payments"
-                   className="p-4 bg-gray-50 rounded-lg hover:bg-gray-100 transition-colors"
-                 >
-                   <p className="font-medium text-gray-900">View Payments</p>
-                   <p className="text-sm text-gray-600">Payment records</p>
-                 </a>
-                 <a
-                   href="/dashboard/admin/categories"
-                   className="p-4 bg-gray-50 rounded-lg hover:bg-gray-100 transition-colors"
-                 >
-                   <p className="font-medium text-gray-900">Categories</p>
-                   <p className="text-sm text-gray-600">Manage categories</p>
-                 </a>
-               </div>
-             </CardContent>
-           </Card>
+        {/* Quick Links & Platform Status */}
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
+          <Card variant="elevated">
+            <CardContent className="p-6">
+              <h3 className="text-lg font-semibold text-deep-navy mb-4">Quick Actions</h3>
+              <div className="grid grid-cols-2 gap-4">
+                <Link href="/dashboard/admin/users">
+                  <Button variant="ghost" className="flex flex-col items-center gap-2 p-4 hover:bg-slate-50 group w-full">
+                    <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-blue-500 to-cyan-600 flex items-center justify-center group-hover:scale-110 transition-transform">
+                      <svg className="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" />
+                      </svg>
+                    </div>
+                    <span className="text-sm font-medium text-slate-700">Manage Users</span>
+                  </Button>
+                </Link>
+                <Link href="/dashboard/admin/vendors">
+                  <Button variant="ghost" className="flex flex-col items-center gap-2 p-4 hover:bg-slate-50 group w-full">
+                    <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-emerald-500 to-teal-600 flex items-center justify-center group-hover:scale-110 transition-transform">
+                      <svg className="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" />
+                      </svg>
+                    </div>
+                    <span className="text-sm font-medium text-slate-700">Manage Vendors</span>
+                  </Button>
+                </Link>
+                <Link href="/dashboard/admin/products">
+                  <Button variant="ghost" className="flex flex-col items-center gap-2 p-4 hover:bg-slate-50 group w-full">
+                    <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-purple-500 to-pink-600 flex items-center justify-center group-hover:scale-110 transition-transform">
+                      <svg className="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4" />
+                      </svg>
+                    </div>
+                    <span className="text-sm font-medium text-slate-700">Manage Products</span>
+                  </Button>
+                </Link>
+                <Link href="/dashboard/admin/orders">
+                  <Button variant="ghost" className="flex flex-col items-center gap-2 p-4 hover:bg-slate-50 group w-full">
+                    <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-amber-500 to-orange-600 flex items-center justify-center group-hover:scale-110 transition-transform">
+                      <svg className="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-3 7h3m-3 4h3m-6-4h.01M9 16h.01" />
+                      </svg>
+                    </div>
+                    <span className="text-sm font-medium text-slate-700">View Orders</span>
+                  </Button>
+                </Link>
+              </div>
+            </CardContent>
+          </Card>
 
-           <Card>
-             <CardHeader>
-               <h3 className="text-lg font-semibold text-gray-900">Platform Status</h3>
-             </CardHeader>
-             <CardContent>
-               <div className="space-y-4">
-                 <div className="flex items-center justify-between p-3 bg-green-50 rounded-lg">
-                   <div className="flex items-center">
-                     <div className="w-3 h-3 bg-green-500 rounded-full mr-3"></div>
-                     <span className="text-gray-700">Database</span>
-                   </div>
-                   <span className="text-green-700 text-sm font-medium">Connected</span>
-                 </div>
-                 <div className="flex items-center justify-between p-3 bg-green-50 rounded-lg">
-                   <div className="flex items-center">
-                     <div className="w-3 h-3 bg-green-500 rounded-full mr-3"></div>
-                     <span className="text-gray-700">API Services</span>
-                   </div>
-                   <span className="text-green-700 text-sm font-medium">Operational</span>
-                 </div>
-                 <div className="flex items-center justify-between p-3 bg-green-50 rounded-lg">
-                   <div className="flex items-center">
-                     <div className="w-3 h-3 bg-green-500 rounded-full mr-3"></div>
-                     <span className="text-gray-700">Payment Gateway</span>
-                   </div>
-                   <span className="text-green-700 text-sm font-medium">Active</span>
-                 </div>
-                 <div className="flex items-center justify-between p-3 bg-blue-50 rounded-lg">
-                   <div className="flex items-center">
-                     <div className="w-3 h-3 bg-blue-500 rounded-full mr-3"></div>
-                     <span className="text-gray-700">Platform Version</span>
-                   </div>
-                   <span className="text-blue-700 text-sm font-medium">Phase 7</span>
-                 </div>
-               </div>
-             </CardContent>
-           </Card>
-         </div>
+          <Card variant="elevated">
+            <CardContent className="p-6">
+              <h3 className="text-lg font-semibold text-deep-navy mb-4">Platform Status</h3>
+              <div className="space-y-3">
+                <div className="flex items-center justify-between p-3 bg-emerald-50 rounded-xl">
+                  <div className="flex items-center">
+                    <div className="w-2 h-2 bg-emerald-500 rounded-full mr-3 animate-pulse"></div>
+                    <span className="text-slate-700 font-medium">Database</span>
+                  </div>
+                  <span className="text-emerald-700 text-sm font-semibold">Connected</span>
+                </div>
+                <div className="flex items-center justify-between p-3 bg-emerald-50 rounded-xl">
+                  <div className="flex items-center">
+                    <div className="w-2 h-2 bg-emerald-500 rounded-full mr-3 animate-pulse"></div>
+                    <span className="text-slate-700 font-medium">API Services</span>
+                  </div>
+                  <span className="text-emerald-700 text-sm font-semibold">Operational</span>
+                </div>
+                <div className="flex items-center justify-between p-3 bg-emerald-50 rounded-xl">
+                  <div className="flex items-center">
+                    <div className="w-2 h-2 bg-emerald-500 rounded-full mr-3 animate-pulse"></div>
+                    <span className="text-slate-700 font-medium">Payment Gateway</span>
+                  </div>
+                  <span className="text-emerald-700 text-sm font-semibold">Active</span>
+                </div>
+                <div className="flex items-center justify-between p-3 bg-slate-100 rounded-xl">
+                  <div className="flex items-center">
+                    <div className="w-2 h-2 bg-royal-blue rounded-full mr-3"></div>
+                    <span className="text-slate-700 font-medium">Platform Version</span>
+                  </div>
+                  <span className="text-royal-blue text-sm font-semibold">Phase 7</span>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+        </div>
 
-         {/* Recent Activity */}
-         <div className="mt-8">
-           <Card>
-             <CardHeader>
-               <h3 className="text-lg font-semibold text-gray-900">Recent Activity</h3>
-             </CardHeader>
-             <CardContent>
-               {loading ? (
-                 <div className="space-y-4">
-                   <div className="h-20 bg-gray-100 rounded-lg animate-pulse"></div>
-                   <div className="h-20 bg-gray-100 rounded-lg animate-pulse"></div>
-                   <div className="h-20 bg-gray-100 rounded-lg animate-pulse"></div>
-                 </div>
-               ) : (
-                 <div className="space-y-6">
-                   <div>
-                     <h4 className="font-medium text-gray-900 mb-2">Recent Orders</h4>
-                     {recentOrders.length === 0 ? (
-                       <p className="text-gray-500 text-center py-4">No recent orders</p>
-                     ) : (
-                       <div className="space-y-3">
-                         {recentOrders.map((order) => (
-                           <div key={order.id} className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
-                             <div className="flex-1">
-                               <p className="text-sm font-medium text-gray-900">Order #{order.id.slice(-8)}</p>
-                               <p className="text-xs text-gray-600">
-                                 {new Date(order.createdAt).toLocaleDateString('en-GH', {
-                                   year: 'numeric',
-                                   month: 'short',
-                                   day: 'numeric'
-                                 })}
-                               </p>
-                             </div>
-                             <div className="text-right">
-                               <span className={`inline-block text-xs px-2 py-1 rounded ${
-                                 order.total > 0 ? 'bg-green-100 text-green-800' : 'bg-gray-100 text-gray-800'
-                               }`}>
-                                 GH₵ {order.total.toFixed(2)}
-                               </span>
-                             </div>
-                           </div>
-                         ))}
-                       </div>
-                     )}
-                   </div>
-                   <div>
-                     <h4 className="font-medium text-gray-900 mb-2">Recent Users</h4>
-                     {recentUsers.length === 0 ? (
-                       <p className="text-gray-500 text-center py-4">No recent users</p>
-                     ) : (
-                       <div className="space-y-3">
-                         {recentUsers.map((user) => (
-                           <div key={user.id} className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
-                             <div className="flex-1">
-                               <p className="text-sm font-medium text-gray-900">{user.email}</p>
-                               <p className="text-xs text-gray-600">
-                                 {user.role === 'ADMIN' ? '(Admin)' : user.role === 'VENDOR' ? '(Vendor)' : '(Customer)'}
-                               </p>
-                             </div>
-                             <div className="text-right">
-                               <p className="text-xs text-gray-600">
-                                 {new Date(user.createdAt).toLocaleDateString('en-GH', {
-                                   year: 'numeric',
-                                   month: 'short',
-                                   day: 'numeric'
-                                 })}
-                               </p>
-                             </div>
-                           </div>
-                         ))}
-                       </div>
-                     )}
-                   </div>
-                   <div>
-                     <h4 className="font-medium text-gray-900 mb-2">Recent Vendors</h4>
-                     {recentVendors.length === 0 ? (
-                       <p className="text-gray-500 text-center py-4">No recent vendors</p>
-                     ) : (
-                       <div className="space-y-3">
-                         {recentVendors.map((vendor) => (
-                           <div key={vendor.id} className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
-                             <div className="flex-1">
-                               <p className="text-sm font-medium text-gray-900">{vendor.email}</p>
-                               <p className="text-xs text-gray-600">
-                                 {vendor.store ? `Store: ${vendor.store.name}` : 'No store yet'}
-                               </p>
-                             </div>
-                             <div className="text-right">
-                               <p className="text-xs text-gray-600">
-                                 {new Date(vendor.createdAt).toLocaleDateString('en-GH', {
-                                   year: 'numeric',
-                                   month: 'short',
-                                   day: 'numeric'
-                                 })}
-                               </p>
-                             </div>
-                           </div>
-                         ))}
-                       </div>
-                     )}
-                   </div>
-                 </div>
-               )}
-             </CardContent>
-           </Card>
-         </div>
+        {/* Recent Activity */}
+        <Card variant="elevated">
+          <CardContent className="p-6">
+            <h3 className="text-lg font-semibold text-deep-navy mb-4">Recent Activity</h3>
+            
+            <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+              {/* Recent Orders */}
+              <div className="lg:col-span-2">
+                <h4 className="text-sm font-semibold text-slate-500 mb-3 uppercase tracking-wide">Recent Orders</h4>
+                {recentOrders.length === 0 ? (
+                  <EmptyState
+                    icon={
+                      <svg className="w-10 h-10 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4" />
+                      </svg>
+                    }
+                    title="No recent orders"
+                    description="Orders will appear here as they are placed."
+                    className="py-8"
+                  />
+                ) : (
+                  <div className="space-y-3">
+                    {recentOrders.map((order) => (
+                      <div key={order.id} className="flex items-center justify-between p-4 bg-slate-50 rounded-xl hover:bg-slate-100 transition-colors">
+                        <div className="flex items-center gap-4">
+                          <div className="w-10 h-10 rounded-lg bg-gradient-to-br from-royal-blue/10 to-purple-500/10 flex items-center justify-center">
+                            <svg className="w-5 h-5 text-royal-blue" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
+                            </svg>
+                          </div>
+                          <div>
+                            <p className="font-medium text-deep-navy">Order #{order.id.slice(-8)}</p>
+                            <p className="text-sm text-slate-500">
+                              {new Date(order.createdAt).toLocaleDateString('en-US', {
+                                year: 'numeric',
+                                month: 'short',
+                                day: 'numeric',
+                                hour: '2-digit',
+                                minute: '2-digit'
+                              })}
+                            </p>
+                          </div>
+                        </div>
+                        <div className="text-right">
+                          <p className="font-bold text-deep-navy">{formatCurrency(order.total)}</p>
+                          <p className="text-xs text-slate-500">{order.user.email}</p>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
+
+              {/* Recent Users */}
+              <div>
+                <h4 className="text-sm font-semibold text-slate-500 mb-3 uppercase tracking-wide">Recent Users</h4>
+                {recentUsers.length === 0 ? (
+                  <EmptyState
+                    icon={
+                      <svg className="w-10 h-10 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0z" />
+                      </svg>
+                    }
+                    title="No recent users"
+                    description="New users will appear here."
+                    className="py-8"
+                  />
+                ) : (
+                  <div className="space-y-3">
+                    {recentUsers.map((user) => (
+                      <div key={user.id} className="flex items-center gap-3 p-3 bg-slate-50 rounded-xl">
+                        <div className="w-9 h-9 rounded-full bg-gradient-to-br from-blue-500 to-cyan-500 flex items-center justify-center text-white text-sm font-bold">
+                          {user.email.charAt(0).toUpperCase()}
+                        </div>
+                        <div className="flex-1 min-w-0">
+                          <p className="text-sm font-medium text-deep-navy truncate">{user.email}</p>
+                          <p className="text-xs text-slate-500">
+                            {user.role === 'ADMIN' ? 'Admin' : user.role === 'VENDOR' ? 'Vendor' : 'Customer'}
+                          </p>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
+            </div>
+          </CardContent>
+        </Card>
       </div>
     </div>
   )
