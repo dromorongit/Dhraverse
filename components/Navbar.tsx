@@ -148,7 +148,7 @@ export function Navbar() {
           {/* Logo */}
           <div className="flex-shrink-0 flex items-center">
             <Link href="/" className="flex items-center gap-3 group" onClick={closeMobileMenu}>
-              <div className="relative w-10 h-10">
+              <div className="relative w-20 h-20">
                 <Image
                   src="/assets/images/dhreammarket.png"
                   alt="Dhream Market Logo"

@@ -79,7 +79,7 @@ export default function RegisterPage() {
       <div className="mt-8 sm:mx-auto sm:w-full sm:max-w-md">
         <Card>
           <CardHeader>
-            <h3 className="text-lg font-medium text-gray-900">Join Dhraverse</h3>
+            <h3 className="text-lg font-medium text-gray-900">Join Dhream Market</h3>
           </CardHeader>
           <CardContent>
             <form className="space-y-6" onSubmit={handleSubmit}>

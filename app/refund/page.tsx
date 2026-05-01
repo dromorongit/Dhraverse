@@ -269,7 +269,7 @@ export default function RefundPolicyPage() {
                 </h2>
                 <p className="text-slate-600">
                   If you have questions about returns or refunds, please contact us through our 
-                  Contact page or email support@dhraverse.com. We are here to help resolve 
+                  Contact page or email support@dhreammarket.com. We are here to help resolve
                   any issues fairly and quickly.
                 </p>
               </section>
