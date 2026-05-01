@@ -1,5 +1,5 @@
 {
-  "name": "dhraverse",
+  "name": "dhreammarket",
   "version": "1.0.0",
   "description": "",
   "main": "index.js",
@@ -18,16 +18,16 @@
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/dromorongit/Dhraverse.git"
+    "url": "git+https://github.com/dromorongit/Dreammarket.git"
   },
   "keywords": [],
   "author": "",
   "license": "ISC",
   "type": "commonjs",
   "bugs": {
-    "url": "https://github.com/dromorongit/Dhraverse/issues"
+    "url": "https://github.com/dromorongit/Dreammarket/issues"
   },
-  "homepage": "https://github.com/dromorongit/Dhraverse#readme",
+  "homepage": "https://github.com/dromorongit/Dreammarket#readme",
   "dependencies": {
     "@prisma/adapter-pg": "^7.6.0",
     "@prisma/client": "^7.6.0",

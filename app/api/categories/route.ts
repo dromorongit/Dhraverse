@@ -3,6 +3,10 @@ import { getPrisma } from '@/lib/prisma'
 
 export async function GET() {
   try {
+    // During build, if database is not available, return empty categories to allow static generation
+    if (process.env.NEXT_PHASE === 'phase-production-build') {
+      return NextResponse.json({ categories: [] })
+    }
     const categories = await getPrisma().category.findMany({
       orderBy: { name: 'asc' },
     })
