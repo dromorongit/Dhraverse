@@ -4,32 +4,50 @@ import { cn } from '@/lib/utils'
 interface InputProps extends InputHTMLAttributes<HTMLInputElement> {
   label?: string
   error?: string
+  wrapperClassName?: string
+  icon?: React.ReactNode
 }
 
 export const Input = forwardRef<HTMLInputElement, InputProps>(
-  ({ label, error, className, ...props }, ref) => {
+  ({ label, error, className, wrapperClassName, icon, ...props }, ref) => {
     return (
-      <div className="space-y-1">
+      <div className={cn('space-y-2', wrapperClassName)}>
         {label && (
-          <label className="block text-sm font-medium text-gray-700">
+          <label className="block text-sm font-medium text-slate-700">
             {label}
           </label>
         )}
-        <input
-          ref={ref}
-          className={cn(
-            'block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-blue-500 focus:border-blue-500',
-            error && 'border-red-500 focus:ring-red-500 focus:border-red-500',
-            className
+        <div className="relative">
+          {icon && (
+            <div className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none">
+              {icon}
+            </div>
           )}
-          {...props}
-        />
+          <input
+            ref={ref}
+            className={cn(
+              'block w-full rounded-2xl border border-slate-200 bg-white/80 px-6 py-4 text-slate-900 placeholder-slate-400',
+              'focus:outline-none focus:ring-2 focus:ring-royal-blue/50 focus:border-royal-blue',
+              'hover:border-slate-300 hover:bg-white',
+              'transition-all duration-200 shadow-sm hover:shadow',
+              icon && 'pl-12',
+              error && 'border-rose-300 focus:ring-rose-500/50 focus:border-rose-500',
+              props.disabled && 'bg-slate-50 text-slate-400 cursor-not-allowed',
+              className
+            )}
+            {...props}
+          />
+        </div>
         {error && (
-          <p className="text-sm text-red-600">{error}</p>
+          <p className="text-sm text-rose-600 flex items-center gap-1">
+            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+            </svg>
+            {error}
+          </p>
         )}
       </div>
     )
   }
 )
-
 Input.displayName = 'Input'

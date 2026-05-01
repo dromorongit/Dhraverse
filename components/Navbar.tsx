@@ -5,6 +5,7 @@ import Link from 'next/link'
 import { useRouter } from 'next/navigation'
 import Image from 'next/image'
 import { Button } from './Button'
+import { Badge } from './Badge'
 
 interface User {
   userId: string
@@ -13,7 +14,7 @@ interface User {
 
 interface Notification {
   id: string
-  type: string
+  type: 'order' | 'payment' | 'system' | 'review'
   title: string
   message: string
   isRead: boolean
@@ -113,6 +114,25 @@ export function Navbar() {
     return date.toLocaleDateString()
   }
 
+  const getNotificationIcon = (type: Notification['type']) => {
+    switch (type) {
+      case 'order':
+        return '<svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z"/></svg>'
+      case 'payment':
+        return '<svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>'
+      case 'system':
+        return '<svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>'
+      case 'review':
+        return '<svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11.049 2.927c.3-.921 1.603-.921 1.902 0l1.519 4.674a1 1 0 00.95.69h4.915c.969 0 1.371 1.24.588 1.81l-3.976 2.888a1 1 0 00-.363 1.118l1.518 4.674c.3.922-.755 1.688-1.538 1.118l-3.976-2.888a1 1 0 00-1.176 0l-3.976 2.888c-.783.57-1.838-.197-1.538-1.118l1.518-4.674a1 1 0 00-.363-1.118l-3.976-2.888c-.784-.57-.38-1.81.588-1.81h4.914a1 1 0 00.951-.69l1.519-4.674z"/></svg>'
+      default:
+        return '<svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9"/></svg>'
+    }
+  }
+
+  const closeMobileMenu = () => {
+    setMobileMenuOpen(false)
+  }
+
   const handleLogout = async () => {
     await fetch('/api/auth/logout', { method: 'POST' })
     setUser(null)
@@ -121,85 +141,99 @@ export function Navbar() {
     setMobileMenuOpen(false)
   }
 
-  const closeMobileMenu = () => {
-    setMobileMenuOpen(false)
-  }
-
   return (
-    <nav className="bg-white shadow-sm border-b">
+    <nav className="sticky top-0 z-50 bg-white/80 backdrop-blur-xl border-b border-slate-200/50 shadow-sm">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="flex justify-between h-16">
-          <div className="flex">
-            <div className="flex-shrink-0 flex items-center">
-              <Link href="/" className="flex items-center space-x-2" onClick={closeMobileMenu}>
-                 <Image
-                   src="/assets/images/dhreammarket.png"
-                   alt="Dhream Market Logo"
-                   width={64}
-                   height={64}
-                 />
-                <span className="text-2xl font-bold text-blue-600">Dhream Market</span>
-              </Link>
-            </div>
-            <div className="hidden sm:ml-6 sm:flex sm:space-x-8">
-              <Link
-                href="/"
-                className="border-transparent text-gray-500 hover:border-gray-300 hover:text-gray-700 inline-flex items-center px-1 pt-1 border-b-2 text-sm font-medium"
-              >
-                Home
-              </Link>
-              <Link
-                href="/marketplace"
-                className="border-transparent text-gray-500 hover:border-gray-300 hover:text-gray-700 inline-flex items-center px-1 pt-1 border-b-2 text-sm font-medium"
-              >
-                Marketplace
-              </Link>
-              <Link
-                href="/about"
-                className="border-transparent text-gray-500 hover:border-gray-300 hover:text-gray-700 inline-flex items-center px-1 pt-1 border-b-2 text-sm font-medium"
-              >
-                About
-              </Link>
-              <Link
-                href="/contact"
-                className="border-transparent text-gray-500 hover:border-gray-300 hover:text-gray-700 inline-flex items-center px-1 pt-1 border-b-2 text-sm font-medium"
-              >
-                Contact
-              </Link>
-              {user && (
-                <Link
-                  href="/cart"
-                  className="border-transparent text-gray-500 hover:border-gray-300 hover:text-gray-700 inline-flex items-center px-1 pt-1 border-b-2 text-sm font-medium"
-                >
-                  <span className="relative">
-                    <svg className="w-5 h-5 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 010 4m0-2a2 2 0 01-2 2m2 2v1a2 2 0 002 2h2" />
-                    </svg>
-                    {cartItemCount > 0 && (
-                      <span className="absolute -top-2 -right-2 bg-red-500 text-white text-xs rounded-full w-4 h-4 flex items-center justify-center">
-                        {cartItemCount > 9 ? '9+' : cartItemCount}
-                      </span>
-                    )}
-                  </span>
-                  Cart
-                </Link>
-              )}
-            </div>
+        <div className="flex justify-between h-16 sm:h-20 items-center">
+          {/* Logo */}
+          <div className="flex-shrink-0 flex items-center">
+            <Link href="/" className="flex items-center gap-3 group" onClick={closeMobileMenu}>
+              <div className="relative w-10 h-10">
+                <Image
+                  src="/assets/images/dhreammarket.png"
+                  alt="Dhream Market Logo"
+                  fill
+                  className="object-contain"
+                  priority
+                />
+              </div>
+              <div className="flex flex-col items-start">
+                <span className="text-xl font-bold bg-gradient-to-r from-deep-navy to-royal-blue bg-clip-text text-transparent group-hover:from-royal-blue group-hover:to-deep-navy transition-colors duration-300">
+                  Dhream Market
+                </span>
+                <span className="text-[10px] font-medium text-muted-text tracking-widest uppercase">
+                  Smart Commerce Ecosystem
+                </span>
+              </div>
+            </Link>
           </div>
-          <div className="hidden sm:ml-6 sm:flex sm:items-center sm:space-x-4">
+
+          {/* Desktop Navigation */}
+          <div className="hidden lg:flex lg:items-center lg:space-x-1">
+            <Link
+              href="/"
+              className="relative px-4 py-2 text-sm font-medium text-slate-600 hover:text-deep-navy transition-colors duration-200 group"
+            >
+              <span>Home</span>
+              <span className="absolute bottom-0 left-4 right-4 h-0.5 bg-gradient-to-r from-royal-blue to-premium-gold rounded-full transform scale-x-0 group-hover:scale-x-100 transition-transform duration-300"></span>
+            </Link>
+            <Link
+              href="/marketplace"
+              className="relative px-4 py-2 text-sm font-medium text-slate-600 hover:text-deep-navy transition-colors duration-200 group"
+            >
+              <span>Marketplace</span>
+              <span className="absolute bottom-0 left-4 right-4 h-0.5 bg-gradient-to-r from-royal-blue to-premium-gold rounded-full transform scale-x-0 group-hover:scale-x-100 transition-transform duration-300"></span>
+            </Link>
+            <Link
+              href="/about"
+              className="relative px-4 py-2 text-sm font-medium text-slate-600 hover:text-deep-navy transition-colors duration-200 group"
+            >
+              <span>About</span>
+              <span className="absolute bottom-0 left-4 right-4 h-0.5 bg-gradient-to-r from-royal-blue to-premium-gold rounded-full transform scale-x-0 group-hover:scale-x-100 transition-transform duration-300"></span>
+            </Link>
+            <Link
+              href="/contact"
+              className="relative px-4 py-2 text-sm font-medium text-slate-600 hover:text-deep-navy transition-colors duration-200 group"
+            >
+              <span>Contact</span>
+              <span className="absolute bottom-0 left-4 right-4 h-0.5 bg-gradient-to-r from-royal-blue to-premium-gold rounded-full transform scale-x-0 group-hover:scale-x-100 transition-transform duration-300"></span>
+            </Link>
+            {user && (
+              <Link
+                href="/cart"
+                className="relative px-4 py-2 text-sm font-medium text-slate-600 hover:text-deep-navy transition-colors duration-200 group"
+              >
+                <span className="flex items-center gap-1.5">
+                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 010 4m0-2a2 2 0 01-2 2m2 2v1a2 2 0 002 2h2" />
+                  </svg>
+                  Cart
+                </span>
+                {cartItemCount > 0 && (
+                  <span className="absolute -top-1 -right-1 bg-gradient-to-r from-rose-500 to-red-500 text-white text-[10px] font-bold min-w-[18px] h-4 rounded-full flex items-center justify-center px-0.5">
+                    {cartItemCount > 9 ? '9+' : cartItemCount}
+                  </span>
+                )}
+              </Link>
+            )}
+          </div>
+
+          {/* Desktop Auth & User Actions */}
+          <div className="hidden lg:flex lg:items-center lg:space-x-3">
             {user ? (
               <>
-                {/* Notifications Bell */}
+                {/* Notifications */}
                 <div className="relative" ref={notificationRef}>
                   <button
                     onClick={() => setNotificationsOpen(!notificationsOpen)}
-                    className="relative p-2 text-gray-500 hover:text-gray-700 transition-colors"
+                    className="relative p-2 text-slate-500 hover:text-deep-navy transition-colors duration-200 rounded-full hover:bg-slate-100"
+                    aria-label="Notifications"
                   >
-                    <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9" />
                     </svg>
                     {unreadCount > 0 && (
-                      <span className="absolute -top-1 -right-1 bg-red-500 text-white text-xs rounded-full w-5 h-5 flex items-center justify-center">
+                      <span className="absolute -top-0.5 -right-0.5 w-5 h-5 bg-gradient-to-r from-rose-500 to-red-500 text-white text-[10px] font-bold rounded-full flex items-center justify-center">
                         {unreadCount > 9 ? '9+' : unreadCount}
                       </span>
                     )}
@@ -207,13 +241,13 @@ export function Navbar() {
 
                   {/* Notifications Dropdown */}
                   {notificationsOpen && (
-                    <div className="absolute right-0 mt-2 w-80 bg-white rounded-lg shadow-lg border border-gray-200 z-50">
-                      <div className="p-4 border-b border-gray-200 flex justify-between items-center">
-                        <h3 className="font-semibold text-gray-900">Notifications</h3>
+                    <div className="absolute right-0 mt-2 w-80 bg-white rounded-2xl shadow-premium-xl border border-slate-200 z-50 overflow-hidden animate-fade-in-up">
+                      <div className="p-4 border-b border-slate-100 flex justify-between items-center bg-slate-50/50">
+                        <h3 className="font-semibold text-deep-navy">Notifications</h3>
                         {unreadCount > 0 && (
                           <button
                             onClick={() => markAsRead()}
-                            className="text-sm text-blue-600 hover:text-blue-800"
+                            className="text-xs font-medium text-royal-blue hover:text-royal-blue/80 transition-colors"
                           >
                             Mark all read
                           </button>
@@ -221,32 +255,39 @@ export function Navbar() {
                       </div>
                       <div className="max-h-96 overflow-y-auto">
                         {notifications.length === 0 ? (
-                          <div className="p-4 text-center text-gray-500">
-                            No notifications
+                          <div className="p-8 text-center">
+                            <div className="w-16 h-16 mx-auto mb-4 rounded-full bg-slate-100 flex items-center justify-center">
+                              <svg className="w-8 h-8 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9" />
+                              </svg>
+                            </div>
+                            <p className="text-slate-500 text-sm">No notifications yet</p>
                           </div>
                         ) : (
                           notifications.slice(0, 10).map((notification) => (
                             <div
                               key={notification.id}
                               onClick={() => !notification.isRead && markAsRead(notification.id)}
-                              className={`p-4 border-b border-gray-100 cursor-pointer hover:bg-gray-50 ${
-                                !notification.isRead ? 'bg-blue-50' : ''
-                              }`}
+                              className={`p-4 border-b border-slate-100 cursor-pointer transition-colors duration-150 flex gap-3 ${!notification.isRead ? 'bg-royal-blue/5' : 'hover:bg-slate-50'}
+                                ${notification.isRead ? 'opacity-60' : ''}`}
                             >
-                              <div className="flex justify-between items-start">
-                                <p className="font-medium text-gray-900 text-sm">
-                                  {notification.title}
+                              <div className="w-8 h-8 rounded-lg bg-slate-100 flex items-center justify-center flex-shrink-0" dangerouslySetInnerHTML={{ __html: getNotificationIcon(notification.type) }} />
+                              <div className="flex-1 min-w-0">
+                                <div className="flex justify-between items-start gap-2">
+                                  <p className={`text-sm font-medium ${!notification.isRead ? 'text-deep-navy' : 'text-slate-600'}`}>
+                                    {notification.title}
+                                  </p>
+                                  <span className="text-[11px] text-slate-400 flex-shrink-0">
+                                    {formatNotificationDate(notification.createdAt)}
+                                  </span>
+                                </div>
+                                <p className="text-xs text-slate-500 mt-0.5 line-clamp-2">
+                                  {notification.message}
                                 </p>
-                                <span className="text-xs text-gray-500">
-                                  {formatNotificationDate(notification.createdAt)}
-                                </span>
+                                {!notification.isRead && (
+                                  <span className="inline-block w-1.5 h-1.5 bg-royal-blue rounded-full mt-2"></span>
+                                )}
                               </div>
-                              <p className="text-sm text-gray-600 mt-1 line-clamp-2">
-                                {notification.message}
-                              </p>
-                              {!notification.isRead && (
-                                <span className="inline-block w-2 h-2 bg-blue-500 rounded-full mt-2" />
-                              )}
                             </div>
                           ))
                         )}
@@ -255,183 +296,146 @@ export function Navbar() {
                   )}
                 </div>
 
-                <span className="text-gray-700">Welcome, {user.role}</span>
-                {user.role === 'ADMIN' && (
-                  <Link href="/dashboard/admin">
-                    <Button variant="outline" size="sm">
-                      Admin Dashboard
-                    </Button>
-                  </Link>
-                )}
-                {user.role === 'VENDOR' && (
-                  <Link href="/dashboard/vendor">
-                    <Button variant="outline" size="sm">
-                      Vendor Dashboard
-                    </Button>
-                  </Link>
-                )}
-                {user.role === 'CUSTOMER' && (
-                  <Link href="/dashboard/customer">
-                    <Button variant="outline" size="sm">
-                      My Account
-                    </Button>
-                  </Link>
-                )}
-                <Button variant="secondary" size="sm" onClick={handleLogout}>
-                  Logout
-                </Button>
+                {/* User Menu */}
+                <div className="relative group">
+                  <button className="flex items-center gap-2 px-3 py-1.5 rounded-xl hover:bg-slate-100 transition-colors duration-200">
+                    <div className="w-7 h-7 rounded-full bg-gradient-to-br from-royal-blue to-purple-600 flex items-center justify-center text-white text-xs font-semibold">
+                      {user.role[0]}
+                    </div>
+                    <span className="text-sm font-medium text-slate-700 hidden sm:inline">{user.role}</span>
+                    <svg className="w-4 h-4 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                    </svg>
+                  </button>
+                  <div className="absolute right-0 mt-1 w-48 bg-white rounded-xl shadow-premium border border-slate-200 py-2 opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200">
+                    {user.role === 'ADMIN' && (
+                      <Link href="/dashboard/admin" className="block px-4 py-2 text-sm text-slate-700 hover:bg-slate-50 transition-colors">
+                        Admin Dashboard
+                      </Link>
+                    )}
+                    {user.role === 'VENDOR' && (
+                      <Link href="/dashboard/vendor" className="block px-4 py-2 text-sm text-slate-700 hover:bg-slate-50 transition-colors">
+                        Vendor Dashboard
+                      </Link>
+                    )}
+                    {user.role === 'CUSTOMER' && (
+                      <Link href="/dashboard/customer" className="block px-4 py-2 text-sm text-slate-700 hover:bg-slate-50 transition-colors">
+                        My Account
+                      </Link>
+                    )}
+                    <div className="border-t border-slate-100 my-2"></div>
+                    <button
+                      onClick={handleLogout}
+                      className="w-full text-left px-4 py-2 text-sm text-rose-600 hover:bg-rose-50 transition-colors"
+                    >
+                      Sign Out
+                    </button>
+                  </div>
+                </div>
               </>
             ) : (
               <>
                 <Link href="/login">
-                  <Button variant="outline" size="sm">
-                    Login
+                  <Button variant="ghost" size="sm">
+                    Sign In
                   </Button>
                 </Link>
                 <Link href="/register">
                   <Button size="sm">
-                    Register
+                    Get Started
                   </Button>
                 </Link>
               </>
             )}
           </div>
-          {/* Mobile menu button */}
-          <div className="sm:hidden flex items-center">
+
+          {/* Mobile Menu Button */}
+          <div className="lg:hidden flex items-center">
             <button
               onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-              className="inline-flex items-center justify-center p-2 rounded-md text-gray-400 hover:text-gray-500 hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-inset focus:ring-blue-500"
-              aria-expanded="false"
+              className="p-2 rounded-xl hover:bg-slate-100 transition-colors"
+              aria-label="Toggle menu"
             >
-              <span className="sr-only">Open main menu</span>
-              {/* Hamburger icon */}
-              <svg
-                className={`${mobileMenuOpen ? 'hidden' : 'block'} h-6 w-6`}
-                xmlns="http://www.w3.org/2000/svg"
-                fill="none"
-                viewBox="0 0 24 24"
-                stroke="currentColor"
-                aria-hidden="true"
-              >
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
-              </svg>
-              {/* Close icon */}
-              <svg
-                className={`${mobileMenuOpen ? 'block' : 'hidden'} h-6 w-6`}
-                xmlns="http://www.w3.org/2000/svg"
-                fill="none"
-                viewBox="0 0 24 24"
-                stroke="currentColor"
-                aria-hidden="true"
-              >
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+              <svg className="w-6 h-6 text-slate-700" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                {mobileMenuOpen ? (
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                ) : (
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
+                )}
               </svg>
             </button>
           </div>
         </div>
       </div>
 
-      {/* Mobile menu */}
-      <div className={`${mobileMenuOpen ? 'block' : 'hidden'} sm:hidden`}>
-        <div className="px-2 pt-2 pb-3 space-y-1 bg-white border-t border-gray-200">
-          <Link
-            href="/"
-            className="block px-3 py-2 rounded-md text-base font-medium text-gray-700 hover:text-gray-900 hover:bg-gray-50"
-            onClick={closeMobileMenu}
-          >
+      {/* Mobile Menu */}
+      <div className={`lg:hidden ${mobileMenuOpen ? 'block' : 'hidden'} border-t border-slate-200 bg-white`}>
+        <div className="px-4 py-4 space-y-1">
+          <Link href="/" onClick={closeMobileMenu} className="block px-4 py-3 rounded-xl text-slate-700 hover:bg-slate-50 transition-colors">
             Home
           </Link>
-          <Link
-            href="/marketplace"
-            className="block px-3 py-2 rounded-md text-base font-medium text-gray-700 hover:text-gray-900 hover:bg-gray-50"
-            onClick={closeMobileMenu}
-          >
+          <Link href="/marketplace" onClick={closeMobileMenu} className="block px-4 py-3 rounded-xl text-slate-700 hover:bg-slate-50 transition-colors">
             Marketplace
           </Link>
-          <Link
-            href="/about"
-            className="block px-3 py-2 rounded-md text-base font-medium text-gray-700 hover:text-gray-900 hover:bg-gray-50"
-            onClick={closeMobileMenu}
-          >
+          <Link href="/about" onClick={closeMobileMenu} className="block px-4 py-3 rounded-xl text-slate-700 hover:bg-slate-50 transition-colors">
             About
           </Link>
-          <Link
-            href="/contact"
-            className="block px-3 py-2 rounded-md text-base font-medium text-gray-700 hover:text-gray-900 hover:bg-gray-50"
-            onClick={closeMobileMenu}
-          >
+          <Link href="/contact" onClick={closeMobileMenu} className="block px-4 py-3 rounded-xl text-slate-700 hover:bg-slate-50 transition-colors">
             Contact
           </Link>
           {user && (
-            <Link
-              href="/cart"
-              className="block px-3 py-2 rounded-md text-base font-medium text-gray-700 hover:text-gray-900 hover:bg-gray-50"
-              onClick={closeMobileMenu}
-            >
-              <span className="relative inline-flex">
-                <svg className="w-5 h-5 mr-2 inline" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <Link href="/cart" onClick={closeMobileMenu} className="block px-4 py-3 rounded-xl text-slate-700 hover:bg-slate-50 transition-colors">
+              <span className="flex items-center gap-2">
+                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 010 4m0-2a2 2 0 01-2 2m2 2v1a2 2 0 002 2h2" />
                 </svg>
                 Cart
                 {cartItemCount > 0 && (
-                  <span className="ml-1 bg-red-500 text-white text-xs rounded-full px-1.5 py-0.5">
+                  <span className="ml-auto bg-rose-500 text-white text-xs font-bold px-2 py-0.5 rounded-full">
                     {cartItemCount}
                   </span>
                 )}
               </span>
             </Link>
           )}
-          <div className="border-t border-gray-200 pt-4 pb-3">
-            {user ? (
-              <div className="space-y-3">
-                <div className="px-3">
-                  <p className="text-base font-medium text-gray-800">Welcome, {user.role}</p>
-                </div>
-                {user.role === 'ADMIN' && (
-                  <Link href="/dashboard/admin" onClick={closeMobileMenu}>
-                    <Button variant="outline" size="sm" className="w-full justify-start">
-                      Admin Dashboard
-                    </Button>
-                  </Link>
-                )}
-                {user.role === 'VENDOR' && (
-                  <Link href="/dashboard/vendor" onClick={closeMobileMenu}>
-                    <Button variant="outline" size="sm" className="w-full justify-start">
-                      Vendor Dashboard
-                    </Button>
-                  </Link>
-                )}
-                {user.role === 'CUSTOMER' && (
-                  <Link href="/dashboard/customer" onClick={closeMobileMenu}>
-                    <Button variant="outline" size="sm" className="w-full justify-start">
-                      My Account
-                    </Button>
-                  </Link>
-                )}
-                <Button
-                  variant="secondary"
-                  size="sm"
-                  className="w-full justify-start"
-                  onClick={handleLogout}
-                >
-                  Logout
-                </Button>
+          <div className="border-t border-slate-200 my-2"></div>
+          {user ? (
+            <>
+              <div className="px-4 py-2">
+                <p className="text-sm font-medium text-slate-700">Welcome, {user.role}</p>
               </div>
-            ) : (
-              <div className="space-y-3">
-                <Link href="/login" onClick={closeMobileMenu}>
-                  <Button variant="outline" size="sm" className="w-full justify-start">
-                    Login
-                  </Button>
+              {user.role === 'ADMIN' && (
+                <Link href="/dashboard/admin" onClick={closeMobileMenu} className="block px-4 py-3 rounded-xl text-slate-700 hover:bg-slate-50 transition-colors">
+                  Admin Dashboard
                 </Link>
-                <Link href="/register" onClick={closeMobileMenu}>
-                  <Button size="sm" className="w-full justify-start">
-                    Register
-                  </Button>
+              )}
+              {user.role === 'VENDOR' && (
+                <Link href="/dashboard/vendor" onClick={closeMobileMenu} className="block px-4 py-3 rounded-xl text-slate-700 hover:bg-slate-50 transition-colors">
+                  Vendor Dashboard
                 </Link>
-              </div>
-            )}
-          </div>
+              )}
+              {user.role === 'CUSTOMER' && (
+                <Link href="/dashboard/customer" onClick={closeMobileMenu} className="block px-4 py-3 rounded-xl text-slate-700 hover:bg-slate-50 transition-colors">
+                  My Account
+                </Link>
+              )}
+              <button
+                onClick={handleLogout}
+                className="w-full text-left px-4 py-3 rounded-xl text-rose-600 hover:bg-rose-50 transition-colors mt-2"
+              >
+                Sign Out
+              </button>
+            </>
+          ) : (
+            <>
+              <Link href="/login" onClick={closeMobileMenu} className="block px-4 py-3 rounded-xl text-slate-700 hover:bg-slate-50 transition-colors">
+                Sign In
+              </Link>
+              <Link href="/register" onClick={closeMobileMenu} className="block px-4 py-3 rounded-xl bg-deep-navy text-white text-center font-medium hover:bg-royal-blue transition-colors mt-2">
+                Get Started
+              </Link>
+            </>
+          )}
         </div>
       </div>
     </nav>

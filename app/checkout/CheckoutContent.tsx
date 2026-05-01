@@ -5,6 +5,9 @@ import { useRouter, useSearchParams } from 'next/navigation'
 import Link from 'next/link'
 import { Card, CardContent } from '@/components/Card'
 import { Button } from '@/components/Button'
+import { Badge } from '@/components/Badge'
+import { EmptyState } from '@/components/EmptyState'
+import { Skeleton } from '@/components/Skeleton'
 import { formatPrice } from '@/lib/currency'
 
 interface CartItem {
@@ -100,7 +103,6 @@ export default function CheckoutContent() {
       const data = await response.json()
 
       if (response.ok && data.authorizationUrl) {
-        // Redirect to Paystack payment page
         window.location.href = data.authorizationUrl
       } else {
         setError(data.error || 'Failed to initialize checkout')
@@ -124,7 +126,6 @@ export default function CheckoutContent() {
         body: JSON.stringify({ reference: ref }),
       })
 
-      // Handle HTTP errors (400, 500, etc.)
       if (!response.ok) {
         setProcessing(false)
         window.location.href = '/payment/failed'
@@ -133,11 +134,9 @@ export default function CheckoutContent() {
 
       const data = await response.json()
       
-      // Handle successful payment verification
       if (data.success) {
         window.location.href = `/payment/success?orderId=${data.orderId}`
       } else {
-        // Payment was cancelled, failed, or abandoned
         setProcessing(false)
         window.location.href = '/payment/failed'
       }
@@ -148,23 +147,17 @@ export default function CheckoutContent() {
     }
   }
 
-  // Handle payment callback from Paystack
   useEffect(() => {
     const status = searchParams.get('status')
     const ref = searchParams.get('reference') || searchParams.get('trxref')
     
-    // User returned from Paystack with successful payment - verify it
     if (ref && (status === 'success' || !status)) {
       verifyPayment(ref)
     } else if (status === 'cancelled' || status === 'failed') {
-      // User returned from Paystack but payment was cancelled or failed
-      // Use window.location for reliable redirect
       setProcessing(false)
       window.location.href = '/payment/failed'
     } else if (searchParams.toString()) {
-      // User returned with any other params - treat as cancelled/abandoned
       setProcessing(false)
-      // Only redirect if there are params but not a successful payment
       if (!ref) {
         window.location.href = '/payment/failed'
       }
@@ -173,16 +166,16 @@ export default function CheckoutContent() {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-gray-50 py-8">
+      <div className="min-h-screen bg-slate-50 py-12">
         <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="animate-pulse">
-            <div className="h-8 bg-gray-200 rounded w-32 mb-8"></div>
+          <div className="animate-pulse space-y-8">
+            <Skeleton className="h-10 w-32" />
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
               <div className="lg:col-span-2 space-y-4">
-                <div className="h-64 bg-gray-200 rounded-lg"></div>
-                <div className="h-48 bg-gray-200 rounded-lg"></div>
+                <Skeleton className="h-48" />
+                <Skeleton className="h-32" />
               </div>
-              <div className="h-64 bg-gray-200 rounded-lg"></div>
+              <Skeleton className="h-64" />
             </div>
           </div>
         </div>
@@ -190,18 +183,22 @@ export default function CheckoutContent() {
     )
   }
 
-  // Payment processing state
   if (processing) {
     return (
-      <div className="min-h-screen bg-gray-50 py-8">
+      <div className="min-h-screen bg-slate-50 py-12">
         <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
-          <Card>
+          <Card variant="elevated" className="max-w-md mx-auto">
             <CardContent className="py-12 text-center">
-              <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto mb-4"></div>
-              <h3 className="text-lg font-medium text-gray-900 mb-2">
+              <div className="w-16 h-16 rounded-full bg-gradient-to-br from-royal-blue to-purple-600 flex items-center justify-center mx-auto mb-6 animate-pulse">
+                <svg className="w-8 h-8 text-white animate-spin" fill="none" viewBox="0 0 24 24">
+                  <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                  <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                </svg>
+              </div>
+              <h3 className="text-xl font-semibold text-deep-navy mb-2">
                 {paymentStatus ? 'Verifying payment...' : 'Processing your payment...'}
               </h3>
-              <p className="text-gray-600">Please wait while we confirm your payment.</p>
+              <p className="text-slate-600">Please wait while we confirm your payment.</p>
             </CardContent>
           </Card>
         </div>
@@ -211,46 +208,62 @@ export default function CheckoutContent() {
 
   if (!cart || cart.items.length === 0) {
     return (
-      <div className="min-h-screen bg-gray-50 py-8">
+      <div className="min-h-screen bg-slate-50 py-12">
         <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="text-center">
-            <h1 className="text-3xl font-bold text-gray-900 mb-4">Checkout</h1>
-            <Card>
-              <CardContent className="py-12">
-                <h3 className="text-lg font-medium text-gray-900 mb-2">Your cart is empty</h3>
-                <p className="text-gray-600 mb-6">Add some products to proceed to checkout.</p>
-                <Link href="/marketplace">
-                  <Button>Browse Products</Button>
-                </Link>
-              </CardContent>
-            </Card>
-          </div>
+          <EmptyState
+            icon={
+              <svg className="w-16 h-16 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 010 4m0-2a2 2 0 01-2 2m2 2v1a2 2 0 002 2h2" />
+              </svg>
+            }
+            title="Your cart is empty"
+            description="Add some products to proceed to checkout."
+            actionLabel="Browse Products"
+            onAction={() => router.push('/marketplace')}
+          />
         </div>
       </div>
     )
   }
 
   return (
-    <div className="min-h-screen bg-gray-50 py-8">
+    <div className="min-h-screen bg-slate-50 py-12">
       <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
-        <h1 className="text-3xl font-bold text-gray-900 mb-8">Checkout</h1>
+        {/* Header */}
+        <div className="mb-8">
+          <Badge variant="premium" className="mb-4">
+            Secure Checkout
+          </Badge>
+          <h1 className="text-3xl sm:text-4xl font-bold text-deep-navy">
+            Complete Your Order
+          </h1>
+        </div>
 
         {error && (
-          <div className="mb-6 p-4 bg-red-50 border border-red-200 rounded-lg">
-            <p className="text-red-600">{error}</p>
+          <div className="mb-6 p-4 bg-rose-50 border border-rose-200 rounded-xl">
+            <p className="text-rose-700 flex items-center gap-2">
+              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+              </svg>
+              {error}
+            </p>
           </div>
         )}
 
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-          {/* Order Summary */}
-          <div className="lg:col-span-2 space-y-4">
-            <Card>
+          {/* Order Items & Customer Info */}
+          <div className="lg:col-span-2 space-y-6">
+            {/* Order Items */}
+            <Card variant="elevated">
               <CardContent className="p-6">
-                <h2 className="text-xl font-semibold mb-4">Order Items</h2>
+                <h2 className="text-xl font-semibold text-deep-navy mb-4">Order Items</h2>
                 <div className="space-y-4">
                   {cart.items.map((item) => (
-                    <div key={item.id} className="flex items-center space-x-4 border-b border-gray-100 pb-4 last:border-0">
-                      <div className="w-16 h-16 bg-gray-200 rounded-lg overflow-hidden flex-shrink-0">
+                    <div
+                      key={item.id}
+                      className="flex items-center gap-4 pb-4 border-b border-slate-100 last:border-0 last:pb-0"
+                    >
+                      <div className="w-20 h-20 rounded-xl bg-slate-100 overflow-hidden flex-shrink-0">
                         {item.product.images.length > 0 ? (
                           <img
                             src={item.product.images[0].url}
@@ -258,20 +271,20 @@ export default function CheckoutContent() {
                             className="w-full h-full object-cover"
                           />
                         ) : (
-                          <div className="w-full h-full flex items-center justify-center bg-gray-100">
-                            <span className="text-xs text-gray-400">No image</span>
+                          <div className="w-full h-full flex items-center justify-center">
+                            <svg className="w-8 h-8 text-slate-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                            </svg>
                           </div>
                         )}
                       </div>
-                      <div className="flex-1">
-                        <h3 className="font-medium text-gray-900">{item.product.name}</h3>
-                        <p className="text-sm text-gray-500">Qty: {item.quantity}</p>
+                      <div className="flex-1 min-w-0">
+                        <h3 className="font-semibold text-deep-navy truncate">{item.product.name}</h3>
+                        <p className="text-sm text-slate-500">Quantity: {item.quantity}</p>
                       </div>
-                      <div className="text-right">
-                        <p className="font-medium text-gray-900">
-                          {formatPrice(item.product.price * item.quantity)}
-                        </p>
-                        <p className="text-sm text-gray-500">{formatPrice(item.product.price)} each</p>
+                      <div className="text-right flex-shrink-0">
+                        <p className="font-semibold text-deep-navy">{formatPrice(item.product.price * item.quantity)}</p>
+                        <p className="text-sm text-slate-500">{formatPrice(item.product.price)} each</p>
                       </div>
                     </div>
                   ))}
@@ -281,26 +294,26 @@ export default function CheckoutContent() {
 
             {/* Customer Information */}
             {profile && (
-              <Card>
+              <Card variant="elevated">
                 <CardContent className="p-6">
-                  <h2 className="text-xl font-semibold mb-4">Customer Information</h2>
-                  <div className="grid grid-cols-2 gap-4 text-sm">
+                  <h2 className="text-xl font-semibold text-deep-navy mb-4">Customer Information</h2>
+                  <div className="grid grid-cols-2 gap-4">
                     {profile.firstName && (
-                      <div>
-                        <span className="text-gray-500">Name:</span>
-                        <span className="ml-2 text-gray-900">{profile.firstName} {profile.lastName || ''}</span>
+                      <div className="bg-slate-50 rounded-xl p-4">
+                        <p className="text-sm text-slate-500 mb-1">Full Name</p>
+                        <p className="font-medium text-deep-navy">{profile.firstName} {profile.lastName || ''}</p>
                       </div>
                     )}
                     {profile.phone && (
-                      <div>
-                        <span className="text-gray-500">Phone:</span>
-                        <span className="ml-2 text-gray-900">{profile.phone}</span>
+                      <div className="bg-slate-50 rounded-xl p-4">
+                        <p className="text-sm text-slate-500 mb-1">Phone Number</p>
+                        <p className="font-medium text-deep-navy">{profile.phone}</p>
                       </div>
                     )}
                     {profile.address && (
-                      <div className="col-span-2">
-                        <span className="text-gray-500">Address:</span>
-                        <span className="ml-2 text-gray-900">{profile.address}</span>
+                      <div className="bg-slate-50 rounded-xl p-4 col-span-2">
+                        <p className="text-sm text-slate-500 mb-1">Address</p>
+                        <p className="font-medium text-deep-navy">{profile.address}</p>
                       </div>
                     )}
                   </div>
@@ -309,49 +322,66 @@ export default function CheckoutContent() {
             )}
           </div>
 
-          {/* Payment Section */}
-          <div>
-            <Card>
+          {/* Payment Summary */}
+          <div className="lg:col-span-1">
+            <Card variant="elevated" className="sticky top-24">
               <CardContent className="p-6">
-                <h2 className="text-xl font-semibold mb-4">Payment Summary</h2>
+                <h2 className="text-xl font-semibold text-deep-navy mb-4">Payment Summary</h2>
+                
                 <div className="space-y-3 mb-6">
-                  <div className="flex justify-between text-gray-600">
+                  <div className="flex justify-between text-slate-600">
                     <span>Subtotal ({cart.items.length} items)</span>
-                    <span>{formatPrice(cart.total)}</span>
+                    <span className="font-medium">{formatPrice(cart.total)}</span>
                   </div>
-                  <div className="flex justify-between text-gray-600">
+                  <div className="flex justify-between text-slate-600">
                     <span>Shipping</span>
-                    <span>Free</span>
+                    <span className="text-emerald-600 font-medium">Free</span>
                   </div>
-                  <div className="border-t pt-3 flex justify-between text-lg font-semibold">
-                    <span>Total</span>
-                    <span>{formatPrice(cart.total)}</span>
+                  <div className="flex justify-between text-slate-600">
+                    <span>Tax</span>
+                    <span>Calculated at checkout</span>
                   </div>
                 </div>
 
-                <div className="text-sm text-gray-500 mb-4">
-                  <p className="mb-2">Secure payment powered by Paystack</p>
-                  <p>Currency: GHS (Ghana Cedis)</p>
+                <div className="border-t border-slate-200 pt-4 mb-6">
+                  <div className="flex justify-between items-center">
+                    <span className="text-lg font-semibold text-deep-navy">Total</span>
+                    <span className="text-3xl font-bold text-royal-blue">{formatPrice(cart.total)}</span>
+                  </div>
                 </div>
 
-                <Button 
+                <Button
                   onClick={handleCheckout}
                   disabled={processing}
-                  className="w-full"
                   size="lg"
+                  className="w-full shadow-lg shadow-royal-blue/20 mb-4"
                 >
                   {processing ? 'Processing...' : 'Pay Now'}
                 </Button>
 
-                <p className="text-xs text-gray-500 mt-4 text-center">
-                  By clicking "Pay Now", you agree to complete your purchase
-                </p>
+                <div className="text-center space-y-3">
+                  <div className="flex items-center justify-center gap-2 text-sm text-emerald-600">
+                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                    </svg>
+                    <span>Secure payment processing</span>
+                  </div>
+                  <div className="flex items-center justify-center gap-2 text-sm text-slate-500">
+                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
+                    </svg>
+                    <span>256-bit SSL encryption</span>
+                  </div>
+                </div>
               </CardContent>
             </Card>
 
-            <div className="mt-4 text-center">
-              <Link href="/cart" className="text-sm text-blue-600 hover:text-blue-800">
-                ← Back to Cart
+            <div className="text-center mt-4">
+              <Link href="/cart" className="text-sm text-slate-600 hover:text-deep-navy transition-colors inline-flex items-center gap-1">
+                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 19l-7-7m0 0l7-7m-7 7h18" />
+                </svg>
+                Back to Cart
               </Link>
             </div>
           </div>

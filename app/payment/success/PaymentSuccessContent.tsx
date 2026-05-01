@@ -5,6 +5,7 @@ import { useRouter, useSearchParams } from 'next/navigation'
 import Link from 'next/link'
 import { Card, CardContent } from '@/components/Card'
 import { Button } from '@/components/Button'
+import { Badge } from '@/components/Badge'
 import { formatPrice } from '@/lib/currency'
 
 interface Order {
@@ -55,54 +56,73 @@ export default function PaymentSuccessContent() {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-gray-50 py-8">
+      <div className="min-h-screen bg-slate-50 py-12">
         <div className="max-w-2xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="text-center">Loading order details...</div>
+          <div className="text-center">
+            <div className="w-16 h-16 rounded-full bg-slate-200 mx-auto mb-4 animate-pulse"></div>
+            <div className="h-6 bg-slate-200 rounded w-48 mx-auto mb-4 animate-pulse"></div>
+            <div className="h-4 bg-slate-200 rounded w-64 mx-auto animate-pulse"></div>
+          </div>
         </div>
       </div>
     )
   }
 
   return (
-    <div className="min-h-screen bg-gray-50 py-8">
+    <div className="min-h-screen bg-slate-50 py-12">
       <div className="max-w-2xl mx-auto px-4 sm:px-6 lg:px-8">
-        <Card>
-          <CardContent className="p-8">
-            {/* Success Icon */}
-            <div className="text-center mb-6">
-              <div className="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-4">
-                <svg className="w-8 h-8 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M5 13l4 4L19 7"></path>
-                </svg>
-              </div>
-              <h1 className="text-2xl font-bold text-gray-900">Payment Successful!</h1>
-              <p className="text-gray-600 mt-2">Thank you for your order</p>
+        <Card variant="elevated" className="overflow-hidden">
+          {/* Success Banner */}
+          <div className="bg-gradient-to-r from-emerald-500 to-emerald-600 px-6 py-8 text-center">
+            <div className="w-16 h-16 bg-white/20 rounded-full flex items-center justify-center mx-auto mb-4 backdrop-blur-sm">
+              <svg className="w-8 h-8 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M5 13l4 4L19 7"></path>
+              </svg>
             </div>
+            <h1 className="text-3xl sm:text-4xl font-bold text-white mb-2">Payment Successful!</h1>
+            <p className="text-emerald-100 text-lg">Thank you for your order</p>
+          </div>
 
-            {/* Order Details */}
+          <CardContent className="p-6 sm:p-8">
+            {/* Order Badge */}
             {order && (
-              <div className="bg-gray-50 rounded-lg p-4 mb-6">
-                <div className="flex justify-between items-center mb-4">
-                  <span className="text-gray-600">Order ID</span>
-                  <span className="font-medium text-gray-900">{order.id}</span>
-                </div>
-                <div className="flex justify-between items-center mb-4">
-                  <span className="text-gray-600">Status</span>
-                  <span className="px-3 py-1 bg-green-100 text-green-800 rounded-full text-sm font-medium">
-                    {order.status}
-                  </span>
-                </div>
-                <div className="flex justify-between items-center mb-4">
-                  <span className="text-gray-600">Payment</span>
-                  <span className="px-3 py-1 bg-green-100 text-green-800 rounded-full text-sm font-medium">
-                    {order.paymentStatus}
-                  </span>
-                </div>
-                <div className="flex justify-between items-center pt-4 border-t">
-                  <span className="font-semibold text-gray-900">Total Paid</span>
-                  <span className="text-xl font-bold text-gray-900">
-                    {formatPrice(order.total)}
-                  </span>
+              <div className="flex items-center justify-center gap-2 mb-6">
+                <Badge variant="verified" size="lg">
+                  Order #{order.id.slice(-8)}
+                </Badge>
+                <Badge variant="success" size="lg">
+                  {order.status}
+                </Badge>
+              </div>
+            )}
+
+            {/* Order Details Card */}
+            {order && (
+              <div className="bg-slate-50 rounded-2xl p-6 mb-6">
+                <h3 className="text-lg font-semibold text-deep-navy mb-4">Order Details</h3>
+                <div className="grid grid-cols-2 gap-4 mb-4">
+                  <div className="bg-white rounded-xl p-4">
+                    <p className="text-sm text-slate-500 mb-1">Order ID</p>
+                    <p className="font-medium text-deep-navy font-mono text-sm">{order.id}</p>
+                  </div>
+                  <div className="bg-white rounded-xl p-4">
+                    <p className="text-sm text-slate-500 mb-1">Date</p>
+                    <p className="font-medium text-deep-navy">
+                      {new Date(order.createdAt).toLocaleDateString('en-US', {
+                        year: 'numeric',
+                        month: 'long',
+                        day: 'numeric',
+                      })}
+                    </p>
+                  </div>
+                  <div className="bg-white rounded-xl p-4">
+                    <p className="text-sm text-slate-500 mb-1">Payment Status</p>
+                    <p className="font-medium text-emerald-600">{order.paymentStatus}</p>
+                  </div>
+                  <div className="bg-white rounded-xl p-4">
+                    <p className="text-sm text-slate-500 mb-1">Total Amount</p>
+                    <p className="font-bold text-deep-navy text-lg">{formatPrice(order.total)}</p>
+                  </div>
                 </div>
               </div>
             )}
@@ -110,42 +130,64 @@ export default function PaymentSuccessContent() {
             {/* Order Items Summary */}
             {order && order.items.length > 0 && (
               <div className="mb-6">
-                <h3 className="font-medium text-gray-900 mb-3">Order Items</h3>
-                <div className="space-y-2">
+                <h3 className="text-lg font-semibold text-deep-navy mb-4">Items Purchased</h3>
+                <div className="space-y-3">
                   {order.items.map((item) => (
-                    <div key={item.id} className="flex justify-between text-sm">
-                      <span className="text-gray-600">{item.product.name} × {item.quantity}</span>
-                      <span className="text-gray-900">{formatPrice(item.price * item.quantity)}</span>
+                    <div
+                      key={item.id}
+                      className="flex items-center justify-between bg-slate-50 rounded-xl p-4"
+                    >
+                      <div>
+                        <p className="font-medium text-deep-navy">{item.product.name}</p>
+                        <p className="text-sm text-slate-500">Quantity: {item.quantity}</p>
+                      </div>
+                      <p className="font-semibold text-deep-navy">
+                        {formatPrice(item.price * item.quantity)}
+                      </p>
                     </div>
                   ))}
                 </div>
               </div>
             )}
 
-            {/* Info Message */}
-            <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 mb-6">
-              <p className="text-sm text-blue-800">
-                A confirmation email has been sent to your registered email address.
-                You can track your order status in your account.
-              </p>
+            {/* Total */}
+            {order && (
+              <div className="border-t border-slate-200 pt-4 mb-6">
+                <div className="flex justify-between items-center">
+                  <span className="text-lg font-semibold text-deep-navy">Total Paid</span>
+                  <span className="text-2xl font-bold text-royal-blue">{formatPrice(order.total)}</span>
+                </div>
+              </div>
+            )}
+
+            {/* Success Message */}
+            <div className="bg-gradient-to-r from-royal-blue/10 to-purple-500/10 rounded-2xl p-4 mb-6 border border-royal-blue/20">
+              <div className="flex items-start gap-3">
+                <svg className="w-5 h-5 text-royal-blue flex-shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                </svg>
+                <p className="text-slate-700 text-sm">
+                  A confirmation email has been sent to your registered email address. You can track your order status and download receipts in your account dashboard.
+                </p>
+              </div>
             </div>
 
-            {/* Actions */}
-            <div className="space-y-4">
+            {/* Action Buttons */}
+            <div className="space-y-3">
               {orderId && (
-                <Link href={`/dashboard/customer/orders/${orderId}`} className="block">
-                  <Button className="w-full">
+                <Link href={`/dashboard/customer/orders/${orderId}`}>
+                  <Button size="lg" className="w-full shadow-lg shadow-royal-blue/20">
                     View Order Details
                   </Button>
                 </Link>
               )}
-              <Link href="/dashboard/customer" className="block">
-                <Button variant="outline" className="w-full">
+              <Link href="/dashboard/customer">
+                <Button variant="outline" size="lg" className="w-full">
                   View My Orders
                 </Button>
               </Link>
-              <Link href="/marketplace" className="block">
-                <Button variant="outline" className="w-full">
+              <Link href="/marketplace">
+                <Button variant="ghost" size="lg" className="w-full text-slate-700 hover:text-deep-navy">
                   Continue Shopping
                 </Button>
               </Link>

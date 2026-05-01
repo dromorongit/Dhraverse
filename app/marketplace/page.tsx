@@ -5,6 +5,9 @@ import { useSearchParams } from 'next/navigation'
 import Link from 'next/link'
 import { Card, CardContent } from '@/components/Card'
 import { Button } from '@/components/Button'
+import { Badge } from '@/components/Badge'
+import { EmptyState } from '@/components/EmptyState'
+import { Skeleton, SkeletonCard } from '@/components/Skeleton'
 import { formatPrice } from '@/lib/currency'
 
 interface CartResponse {
@@ -120,13 +123,16 @@ function MarketplaceContent() {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-gray-50 py-8">
+      <div className="min-h-screen bg-slate-50 py-12">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="animate-pulse">
-            <div className="h-8 bg-gray-200 rounded w-48 mb-8"></div>
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+          <div className="space-y-8">
+            <div className="text-center">
+              <Skeleton className="h-10 w-48 mx-auto mb-4" />
+              <Skeleton className="h-5 w-64 mx-auto" />
+            </div>
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
               {[...Array(8)].map((_, i) => (
-                <div key={i} className="h-64 bg-gray-200 rounded-lg"></div>
+                <SkeletonCard key={i} />
               ))}
             </div>
           </div>
@@ -136,92 +142,162 @@ function MarketplaceContent() {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50 py-8">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="mb-8">
-          <h1 className="text-3xl font-bold text-gray-900 mb-4">Marketplace</h1>
-          <p className="text-gray-600">Discover products from our trusted vendors</p>
+    <div className="min-h-screen bg-slate-50">
+      {/* Hero Section */}
+      <section className="relative bg-gradient-to-br from-deep-navy to-royal-blue py-20 overflow-hidden">
+        <div className="absolute inset-0">
+          <div className="absolute top-0 left-0 w-full h-full bg-gradient-to-tr from-royal-blue/20 to-transparent"></div>
+          <div className="absolute bottom-0 right-0 w-64 h-64 bg-premium-gold/20 rounded-full blur-3xl"></div>
         </div>
-
-        {/* Category Filter */}
-        <div className="mb-8">
-          <div className="flex flex-wrap gap-2">
-            <Button
-              variant={selectedCategory === '' ? 'primary' : 'outline'}
-              size="sm"
-              onClick={() => setSelectedCategory('')}
-            >
-              All Categories
-            </Button>
-            {categories.map((category) => (
-              <Button
-                key={category.id}
-                variant={selectedCategory === category.id ? 'primary' : 'outline'}
-                size="sm"
-                onClick={() => setSelectedCategory(category.id)}
-              >
-                {category.name}
-              </Button>
-            ))}
+        <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="text-center text-white">
+            <Badge variant="premium" className="mb-6">
+              Premium Marketplace
+            </Badge>
+            <h1 className="text-4xl sm:text-5xl lg:text-6xl font-bold mb-6 tracking-tight">
+              Discover Premium Products
+            </h1>
+            <p className="text-lg sm:text-xl text-slate-300 max-w-2xl mx-auto mb-8">
+              Browse our curated selection of quality products from trusted vendors worldwide.
+            </p>
+            <div className="flex flex-col sm:flex-row gap-4 justify-center max-w-xl mx-auto">
+              <div className="relative flex-1">
+                <input
+                  type="text"
+                  placeholder="Search products..."
+                  className="w-full rounded-full border border-white/20 bg-white/10 px-6 py-4 text-white placeholder-slate-300 focus:outline-none focus:ring-2 focus:ring-white/30 backdrop-blur-sm"
+                />
+                <svg className="absolute right-4 top-1/2 -translate-y-1/2 w-5 h-5 text-slate-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+                </svg>
+              </div>
+            </div>
           </div>
         </div>
+      </section>
 
-        {filteredProducts.length === 0 ? (
-          <Card>
-            <CardContent className="text-center py-12">
-              <h3 className="text-lg font-medium text-gray-900 mb-2">
-                {selectedCategory ? 'No products in this category' : 'No products available'}
-              </h3>
-              <p className="text-gray-600">
-                {selectedCategory
-                  ? 'Try selecting a different category or check back later.'
-                  : 'Check back later for new products from our vendors.'
-                }
-              </p>
-            </CardContent>
-          </Card>
-        ) : (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-            {filteredProducts.map((product) => (
-              <Card key={product.id} className="hover:shadow-lg transition-shadow">
-                <CardContent className="p-0">
-                  <Link href={`/marketplace/product/${product.id}`}>
-                    <div className="aspect-w-1 aspect-h-1 bg-gray-200 rounded-t-lg overflow-hidden">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
+        <div className="space-y-8">
+          {/* Category Filter */}
+          <div className="flex flex-wrap items-center justify-between gap-4">
+            <div className="flex flex-wrap gap-2">
+              <Button
+                variant={selectedCategory === '' ? 'primary' : 'ghost'}
+                size="sm"
+                className={`rounded-full ${selectedCategory === '' ? '' : 'text-slate-700'}`}
+                onClick={() => setSelectedCategory('')}
+              >
+                All Categories
+                {selectedCategory === '' && (
+                  <span className="ml-2 w-5 h-5 rounded-full bg-white/20 flex items-center justify-center text-xs">
+                    {products.length}
+                  </span>
+                )}
+              </Button>
+              {categories.map((category) => (
+                <Button
+                  key={category.id}
+                  variant={selectedCategory === category.id ? 'primary' : 'ghost'}
+                  size="sm"
+                  className={`rounded-full ${selectedCategory === category.id ? '' : 'text-slate-700'}`}
+                  onClick={() => setSelectedCategory(category.id)}
+                >
+                  {category.name}
+                  {selectedCategory === category.id && (
+                    <span className="ml-2 w-5 h-5 rounded-full bg-white/20 flex items-center justify-center text-xs">
+                      {filteredProducts.length}
+                    </span>
+                  )}
+                </Button>
+              ))}
+            </div>
+            <div className="flex items-center gap-2 text-sm text-slate-600">
+              <span>{filteredProducts.length} products</span>
+              <span className="w-1 h-1 bg-slate-300 rounded-full"></span>
+              <span>Verified sellers</span>
+            </div>
+          </div>
+
+          {/* Results */}
+          {filteredProducts.length === 0 ? (
+            <EmptyState
+              icon={
+                <svg className="w-12 h-12" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4" />
+                </svg>
+              }
+              title={selectedCategory ? 'No products in this category' : 'No products available'}
+              description={selectedCategory ? 'Try selecting a different category or check back later.' : 'Check back later for new products from our vendors.'}
+              actionLabel="Browse All Products"
+              onAction={() => setSelectedCategory('')}
+            />
+          ) : (
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+              {filteredProducts.map((product) => (
+                <Card
+                  key={product.id}
+                  variant="elevated"
+                  className="group overflow-hidden"
+                >
+                  <Link href={`/marketplace/product/${product.id}`} className="block">
+                    <div className="relative aspect-square bg-slate-100 overflow-hidden">
                       {product.images.length > 0 ? (
                         <img
                           src={product.images[0].url}
                           alt={product.images[0].alt || product.name}
-                          className="w-full h-48 object-cover hover:scale-105 transition-transform"
+                          className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
                         />
                       ) : (
-                        <div className="w-full h-48 flex items-center justify-center bg-gray-100">
-                          <span className="text-gray-400 text-sm">No image</span>
+                        <div className="w-full h-full flex items-center justify-center bg-slate-100">
+                          <svg className="w-12 h-12 text-slate-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                          </svg>
                         </div>
+                      )}
+                      {product.stock === 0 && (
+                        <div className="absolute top-3 right-3 bg-rose-500 text-white text-xs font-bold px-3 py-1 rounded-full">
+                          Sold Out
+                        </div>
+                      )}
+                      {product.store && (
+                        <Badge
+                          variant="verified"
+                          size="sm"
+                          className="absolute top-3 left-3"
+                        >
+                          {product.store.name}
+                        </Badge>
                       )}
                     </div>
                   </Link>
-                  <div className="p-4">
-                    <h3 className="text-lg font-semibold text-gray-900 mb-2">
-                      {product.name}
-                    </h3>
-                    <p className="text-gray-600 text-sm mb-2 line-clamp-2">
-                      {product.description || 'No description'}
+                  <CardContent className="p-6">
+                    <Link href={`/marketplace/product/${product.id}`} className="block">
+                      <h3 className="text-lg font-semibold text-deep-navy mb-2 line-clamp-2 group-hover:text-royal-blue transition-colors">
+                        {product.name}
+                      </h3>
+                    </Link>
+                    <p className="text-sm text-slate-600 mb-4 line-clamp-2">
+                      {product.description || 'No description available'}
                     </p>
-                    <div className="flex justify-between items-center mb-3">
-                      <span className="text-lg font-bold text-blue-600">
+                    <div className="flex items-center justify-between mb-4">
+                      <span className="text-2xl font-bold text-royal-blue">
                         {formatPrice(product.price)}
                       </span>
-                      <span className="text-xs text-gray-500">
+                      <span className="text-sm text-slate-500">
                         {product.stock > 0 ? `${product.stock} in stock` : 'Out of stock'}
                       </span>
                     </div>
-                    <div className="flex justify-between items-center text-sm text-gray-500 mb-4">
-                      <span>{product.category?.name || 'Unknown Category'}</span>
-                      <span>{product.store?.name || 'Unknown Store'}</span>
-                    </div>
-                    <div className="space-y-2">
+                    {product.category && (
+                      <div className="flex items-center gap-2 mb-4">
+                        <Badge variant="default" size="sm">
+                          {product.category.name}
+                        </Badge>
+                      </div>
+                    )}
+                    <div className="flex gap-2">
                       <Button
-                        className="w-full"
+                        size="sm"
+                        className="flex-1"
                         disabled={product.stock === 0 || addingToCart.has(product.id)}
                         onClick={() => addToCart(product.id)}
                       >
@@ -229,21 +305,20 @@ function MarketplaceContent() {
                           ? 'Adding...'
                           : product.stock > 0
                           ? 'Add to Cart'
-                          : 'Out of Stock'
-                        }
+                          : 'Out of Stock'}
                       </Button>
-                      <Link href={`/marketplace/product/${product.id}`}>
-                        <Button variant="outline" className="w-full">
-                          View Details
+                      <Link href={`/marketplace/product/${product.id}`} className="flex-1">
+                        <Button variant="outline" size="sm" className="w-full">
+                          View
                         </Button>
                       </Link>
                     </div>
-                  </div>
-                </CardContent>
-              </Card>
-            ))}
-          </div>
-        )}
+                  </CardContent>
+                </Card>
+              ))}
+            </div>
+          )}
+        </div>
       </div>
     </div>
   )
@@ -252,9 +327,16 @@ function MarketplaceContent() {
 export default function Marketplace() {
   return (
     <Suspense fallback={
-      <div className="min-h-screen bg-gray-50 py-8">
+      <div className="min-h-screen bg-slate-50 py-12">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="text-center">Loading marketplace...</div>
+          <div className="text-center">
+            <h2 className="text-3xl font-bold text-deep-navy mb-4">Loading marketplace...</h2>
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 mt-8">
+              {[...Array(8)].map((_, i) => (
+                <SkeletonCard key={i} />
+              ))}
+            </div>
+          </div>
         </div>
       </div>
     }>

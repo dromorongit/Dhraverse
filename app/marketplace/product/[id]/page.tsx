@@ -4,6 +4,9 @@ import { useState, useEffect } from 'react'
 import { useRouter, useParams } from 'next/navigation'
 import { Card, CardContent, CardHeader } from '@/components/Card'
 import { Button } from '@/components/Button'
+import { Badge } from '@/components/Badge'
+import { EmptyState } from '@/components/EmptyState'
+import { Skeleton } from '@/components/Skeleton'
 import { formatPrice } from '@/lib/currency'
 
 interface CartResponse {
@@ -143,7 +146,6 @@ export default function ProductDetail() {
 
   const checkCanReview = async () => {
     try {
-      // The backend will check if user has purchased and received the product
       const response = await fetch(`/api/reviews?productId=${productId}&checkEligibility=true`, {
         headers: {
           'Authorization': `Bearer ${document.cookie?.match(/token=([^;]+)/)?.[1]}`,
@@ -233,9 +235,8 @@ export default function ProductDetail() {
             type="button"
             disabled={!interactive}
             onClick={() => interactive && onChange?.(star)}
-            className={`text-2xl ${
-              star <= rating ? 'text-yellow-400' : 'text-gray-300'
-            } ${interactive ? 'cursor-pointer hover:scale-110' : ''}`}
+            className={`text-2xl ${interactive ? 'cursor-pointer hover:scale-110 transition-transform' : ''}
+              ${star <= rating ? 'text-yellow-400' : 'text-slate-300'}`}
           >
             ★
           </button>
@@ -246,17 +247,19 @@ export default function ProductDetail() {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-gray-50 py-8">
+      <div className="min-h-screen bg-slate-50 py-12">
         <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="animate-pulse">
-            <div className="h-4 bg-gray-200 rounded w-32 mb-8"></div>
+          <div className="animate-pulse space-y-8">
+            <button className="text-slate-400 hover:text-slate-600 inline-flex items-center gap-1">
+              ← Back to Marketplace
+            </button>
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-              <div className="aspect-square bg-gray-200 rounded-lg"></div>
+              <div className="aspect-square bg-slate-200 rounded-2xl"></div>
               <div className="space-y-4">
-                <div className="h-8 bg-gray-200 rounded w-3/4"></div>
-                <div className="h-4 bg-gray-200 rounded w-1/2"></div>
-                <div className="h-10 bg-gray-200 rounded w-1/3"></div>
-                <div className="h-32 bg-gray-200 rounded"></div>
+                <Skeleton className="h-8 w-3/4" />
+                <Skeleton className="h-5 w-1/2" />
+                <Skeleton className="h-12 w-2/3" />
+                <Skeleton className="h-32" />
               </div>
             </div>
           </div>
@@ -267,33 +270,45 @@ export default function ProductDetail() {
 
   if (!product) {
     return (
-      <div className="min-h-screen bg-gray-50 py-8">
+      <div className="min-h-screen bg-slate-50 py-12">
         <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="text-center">
-            <h1 className="text-2xl font-bold text-gray-900 mb-4">Product Not Found</h1>
-            <Button onClick={() => router.push('/marketplace')}>
-              Back to Marketplace
-            </Button>
-          </div>
+          <EmptyState
+            icon={
+              <svg className="w-12 h-12 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+              </svg>
+            }
+            title="Product Not Found"
+            description="The product you're looking for doesn't exist or has been removed."
+            actionLabel="Back to Marketplace"
+            onAction={() => router.push('/marketplace')}
+          />
         </div>
       </div>
     )
   }
 
   return (
-    <div className="min-h-screen bg-gray-50 py-8">
-      <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
+    <div className="min-h-screen bg-slate-50">
+      {/* Header */}
+      <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         <button
           onClick={() => router.push('/marketplace')}
-          className="text-blue-600 hover:text-blue-800 mb-8 inline-flex items-center"
+          className="text-slate-600 hover:text-deep-navy inline-flex items-center gap-2 transition-colors"
         >
-          ← Back to Marketplace
+          <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 19l-7-7m0 0l7-7m-7 7h18" />
+          </svg>
+          Back to Marketplace
         </button>
+      </div>
 
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+      {/* Product Content */}
+      <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 pb-16">
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-10">
           {/* Product Images */}
           <div className="space-y-4">
-            <div className="aspect-w-1 aspect-h-1 bg-gray-200 rounded-lg overflow-hidden">
+            <div className="aspect-square rounded-2xl overflow-hidden bg-slate-100 shadow-lg">
               {product.images.length > 0 ? (
                 <img
                   src={product.images[selectedImageIndex].url}
@@ -301,20 +316,20 @@ export default function ProductDetail() {
                   className="w-full h-full object-cover"
                 />
               ) : (
-                <div className="w-full h-full flex items-center justify-center bg-gray-100">
-                  <span className="text-gray-400">No image available</span>
+                <div className="w-full h-full flex items-center justify-center">
+                  <svg className="w-16 h-16 text-slate-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                  </svg>
                 </div>
               )}
             </div>
             {product.images.length > 1 && (
-              <div className="grid grid-cols-4 gap-2">
+              <div className="grid grid-cols-4 gap-3">
                 {product.images.map((image, index) => (
                   <button
                     key={image.id}
                     onClick={() => setSelectedImageIndex(index)}
-                    className={`aspect-w-1 aspect-h-1 bg-gray-200 rounded border-2 overflow-hidden ${
-                      selectedImageIndex === index ? 'border-blue-500' : 'border-gray-300'
-                    }`}
+                    className={`aspect-square rounded-xl overflow-hidden border-2 transition-all ${selectedImageIndex === index ? 'border-royal-blue shadow-lg' : 'border-slate-200 hover:border-slate-300'}`}
                   >
                     <img
                       src={image.url}
@@ -330,71 +345,76 @@ export default function ProductDetail() {
           {/* Product Info */}
           <div className="space-y-6">
             <div>
-              <h1 className="text-3xl font-bold text-gray-900 mb-2">{product.name}</h1>
-              <p className="text-lg text-gray-600 mb-4 flex items-center gap-2">
-                by {product.store?.name || 'Unknown Store'}
+              <div className="flex items-start justify-between mb-3">
+                <h1 className="text-3xl sm:text-4xl font-bold text-deep-navy leading-tight">
+                  {product.name}
+                </h1>
                 {product.store?.isVerified && (
-                  <span className="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-blue-100 text-blue-800">
-                    ✓ Verified
-                  </span>
+                  <Badge variant="verified" size="md">
+                    Verified Store
+                  </Badge>
                 )}
-              </p>
-              <div className="flex items-center space-x-4 mb-4">
-                <span className="text-3xl font-bold text-blue-600">
-                  {formatPrice(product.price)}
-                </span>
-                <span className={`text-sm px-2 py-1 rounded ${
-                  product.stock > 0
-                    ? 'bg-green-100 text-green-800'
-                    : 'bg-red-100 text-red-800'
-                }`}>
-                  {product.stock > 0 ? `${product.stock} in stock` : 'Out of stock'}
-                </span>
               </div>
-              
-              {/* Rating Display */}
-              {totalReviews > 0 && (
-                <div className="flex items-center gap-2 mb-4">
+              <p className="text-slate-600 mb-4 flex items-center gap-2">
+                <span className="text-slate-400">by</span>
+                <span className="font-medium text-deep-navy">{product.store?.name || 'Unknown Store'}</span>
+              </p>
+              <div className="flex items-center gap-4 mb-6">
+                <div className="flex items-center gap-2">
                   {renderStars(Math.round(averageRating))}
-                  <span className="text-sm text-gray-600">
-                    {averageRating.toFixed(1)} ({totalReviews} review{totalReviews !== 1 ? 's' : ''})
+                  <span className="text-slate-600">
+                    {averageRating > 0 ? `${averageRating.toFixed(1)} (${totalReviews} review${totalReviews !== 1 ? 's' : ''})` : 'No reviews yet'}
                   </span>
                 </div>
+              </div>
+              <div className="flex items-baseline gap-3 mb-6">
+                <span className="text-4xl sm:text-5xl font-bold text-royal-blue">
+                  {formatPrice(product.price)}
+                </span>
+                <Badge variant={product.stock > 0 ? 'success' : 'danger'}>
+                  {product.stock > 0 ? `${product.stock} in stock` : 'Out of stock'}
+                </Badge>
+              </div>
+              {product.category && (
+                <div className="mb-6">
+                  <Badge variant="default" size="md">
+                    {product.category.name}
+                  </Badge>
+                </div>
               )}
-              
-              <p className="text-sm text-gray-500 mb-4">
-                Category: {product.category?.name || 'Unknown Category'}
-              </p>
             </div>
 
             {product.description && (
-              <div>
-                <h2 className="text-xl font-semibold text-gray-900 mb-3">Description</h2>
-                <p className="text-gray-700 leading-relaxed">{product.description}</p>
-              </div>
+              <Card variant="outline">
+                <CardContent className="pt-6">
+                  <h3 className="text-lg font-semibold text-deep-navy mb-3">Description</h3>
+                  <p className="text-slate-600 leading-relaxed">{product.description}</p>
+                </CardContent>
+              </Card>
             )}
 
-            <Card>
+            <Card variant="elevated">
               <CardContent className="pt-6">
-                <div className="space-y-4">
-                  <div className="flex justify-between">
-                    <span className="text-gray-600">Store:</span>
-                    <span className="font-medium flex items-center gap-2">
+                <h3 className="text-lg font-semibold text-deep-navy mb-4">Product Details</h3>
+                <div className="space-y-3">
+                  <div className="flex justify-between py-2 border-b border-slate-100">
+                    <span className="text-slate-600">Store</span>
+                    <span className="font-medium text-deep-navy flex items-center gap-2">
                       {product.store?.name || 'Unknown Store'}
                       {product.store?.isVerified && (
-                        <span className="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-blue-100 text-blue-800">
-                          ✓ Verified
-                        </span>
+                        <Badge variant="verified" size="sm">Verified</Badge>
                       )}
                     </span>
                   </div>
-                  <div className="flex justify-between">
-                    <span className="text-gray-600">Category:</span>
-                    <span className="font-medium">{product.category?.name || 'Unknown Category'}</span>
+                  <div className="flex justify-between py-2 border-b border-slate-100">
+                    <span className="text-slate-600">Category</span>
+                    <span className="font-medium text-deep-navy">{product.category?.name || 'Unknown Category'}</span>
                   </div>
-                  <div className="flex justify-between">
-                    <span className="text-gray-600">Stock:</span>
-                    <span className="font-medium">{product.stock} units</span>
+                  <div className="flex justify-between py-2 border-b border-slate-100">
+                    <span className="text-slate-600">Stock Status</span>
+                    <span className={`font-medium ${product.stock > 0 ? 'text-emerald-600' : 'text-rose-600'}`}>
+                      {product.stock > 0 ? `${product.stock} units available` : 'Out of stock'}
+                    </span>
                   </div>
                 </div>
               </CardContent>
@@ -402,28 +422,34 @@ export default function ProductDetail() {
 
             <div className="space-y-3">
               <Button
-                className="w-full"
-                disabled={product.stock === 0 || addingToCart}
                 size="lg"
+                className="w-full shadow-lg shadow-royal-blue/20"
+                disabled={product.stock === 0 || addingToCart}
                 onClick={addToCart}
               >
                 {addingToCart
-                  ? 'Adding...'
+                  ? 'Adding to Cart...'
                   : product.stock > 0
                   ? 'Add to Cart'
-                  : 'Out of Stock'
-                }
+                  : 'Out of Stock'}
               </Button>
             </div>
           </div>
         </div>
 
         {/* Reviews Section */}
-        <div className="mt-12">
-          <div className="flex items-center justify-between mb-6">
-            <h2 className="text-2xl font-bold text-gray-900">Customer Reviews</h2>
-            {user && user.role === 'CUSTOMER' && !showReviewForm && (
-              <Button onClick={() => setShowReviewForm(true)} variant="outline">
+        <div className="mt-16">
+          <div className="flex items-center justify-between mb-8">
+            <div>
+              <h2 className="text-2xl sm:text-3xl font-bold text-deep-navy">Customer Reviews</h2>
+              {totalReviews > 0 && (
+                <p className="text-slate-600 mt-1">
+                  {averageRating.toFixed(1)} out of 5 ({totalReviews} review{totalReviews !== 1 ? 's' : ''})
+                </p>
+              )}
+            </div>
+            {user && user.role === 'CUSTOMER' && !showReviewForm && canReview && (
+              <Button variant="outline" onClick={() => setShowReviewForm(true)}>
                 Write a Review
               </Button>
             )}
@@ -431,39 +457,30 @@ export default function ProductDetail() {
 
           {/* Review Form */}
           {showReviewForm && (
-            <Card className="mb-6">
-              <CardHeader>
-                <h3 className="text-lg font-semibold">Write Your Review</h3>
-              </CardHeader>
-              <CardContent>
+            <Card variant="elevated" className="mb-8">
+              <CardContent className="pt-6">
+                <h3 className="text-lg font-semibold text-deep-navy mb-4">Write Your Review</h3>
                 <div className="space-y-4">
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">
-                      Rating
-                    </label>
+                    <label className="block text-sm font-medium text-slate-700 mb-3">Rating</label>
                     {renderStars(reviewRating, true, (r) => setReviewRating(r))}
                   </div>
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">
-                      Review (optional)
-                    </label>
+                    <label className="block text-sm font-medium text-slate-700 mb-3">Review (optional)</label>
                     <textarea
                       value={reviewComment}
                       onChange={(e) => setReviewComment(e.target.value)}
                       rows={4}
-                      className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                      className="w-full rounded-xl border border-slate-200 bg-white px-4 py-3 text-slate-900 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-royal-blue/50 focus:border-royal-blue transition-all duration-200"
                       placeholder="Share your experience with this product..."
                     />
                   </div>
-                  <div className="flex gap-2">
-                    <Button
-                      onClick={submitReview}
-                      disabled={submittingReview}
-                    >
+                  <div className="flex gap-3 pt-2">
+                    <Button onClick={submitReview} disabled={submittingReview}>
                       {submittingReview ? 'Submitting...' : 'Submit Review'}
                     </Button>
                     <Button
-                      variant="outline"
+                      variant="ghost"
                       onClick={() => {
                         setShowReviewForm(false)
                         setReviewRating(5)
@@ -480,34 +497,45 @@ export default function ProductDetail() {
 
           {/* Reviews List */}
           {reviewsLoading ? (
-            <div className="text-center py-8 text-gray-500">Loading reviews...</div>
-          ) : reviews.length === 0 ? (
-            <div className="text-center py-8 text-gray-500">
-              No reviews yet. Be the first to review this product!
+            <div className="text-center py-12">
+              <Skeleton className="h-6 w-32 mx-auto mb-4" />
+              <Skeleton className="h-4 w-48 mx-auto" />
             </div>
+          ) : reviews.length === 0 ? (
+            <EmptyState
+              icon={
+                <svg className="w-12 h-12 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" />
+                </svg>
+              }
+              title="No reviews yet"
+              description={canReview ? 'Be the first to review this product!' : 'No reviews for this product yet.'}
+            />
           ) : (
             <div className="space-y-4">
               {reviews.map((review) => (
-                <Card key={review.id}>
+                <Card key={review.id} variant="elevated">
                   <CardContent className="pt-6">
-                    <div className="flex items-start justify-between mb-2">
-                      <div className="flex items-center gap-2">
+                    <div className="flex items-start justify-between mb-3">
+                      <div className="flex items-center gap-3">
                         {renderStars(review.rating)}
                         {review.isVerified && (
-                          <span className="text-xs text-green-600 flex items-center">
-                            ✓ Verified Purchase
-                          </span>
+                          <Badge variant="verified" size="sm">
+                            Verified Purchase
+                          </Badge>
                         )}
                       </div>
-                      <span className="text-sm text-gray-500">
-                        {new Date(review.createdAt).toLocaleDateString()}
+                      <span className="text-sm text-slate-500">
+                        {new Date(review.createdAt).toLocaleDateString('en-US', {
+                          year: 'numeric',
+                          month: 'short',
+                          day: 'numeric',
+                        })}
                       </span>
                     </div>
-                    <p className="text-sm text-gray-600 mb-2">
-                      By {review.reviewer}
-                    </p>
+                    <p className="text-sm text-slate-600 mb-2">By {review.reviewer}</p>
                     {review.comment && (
-                      <p className="text-gray-700">{review.comment}</p>
+                      <p className="text-slate-700 leading-relaxed">{review.comment}</p>
                     )}
                   </CardContent>
                 </Card>
