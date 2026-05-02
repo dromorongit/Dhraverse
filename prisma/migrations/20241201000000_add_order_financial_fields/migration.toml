@@ -1,0 +1,75 @@
+# This is a migration file for adding financial fields to orders and order_items tables
+
+database = "postgresql"
+
+[[data]]
+table = "orders"
+column = "grossAmount"
+type = "DOUBLE PRECISION"
+nullable = true
+
+[[data]]
+table = "orders"
+column = "processorFee"
+type = "DOUBLE PRECISION"
+nullable = true
+
+[[data]]
+table = "orders"
+column = "netAmount"
+type = "DOUBLE PRECISION"
+nullable = true
+
+[[data]]
+table = "orders"
+column = "platformCommission"
+type = "DOUBLE PRECISION"
+nullable = true
+
+[[data]]
+table = "orders"
+column = "vendorEarnings"
+type = "DOUBLE PRECISION"
+nullable = true
+
+[[data]]
+table = "orders"
+column = "commissionRate"
+type = "DOUBLE PRECISION"
+nullable = true
+
+[[data]]
+table = "order_items"
+column = "grossAmount"
+type = "DOUBLE PRECISION"
+nullable = true
+
+[[data]]
+table = "order_items"
+column = "processorFee"
+type = "DOUBLE PRECISION"
+nullable = true
+
+[[data]]
+table = "order_items"
+column = "netAmount"
+type = "DOUBLE PRECISION"
+nullable = true
+
+[[data]]
+table = "order_items"
+column = "platformCommission"
+type = "DOUBLE PRECISION"
+nullable = true
+
+[[data]]
+table = "order_items"
+column = "vendorEarnings"
+type = "DOUBLE PRECISION"
+nullable = true
+
+[[data]]
+table = "order_items"
+column = "commissionRate"
+type = "DOUBLE PRECISION"
+nullable = true

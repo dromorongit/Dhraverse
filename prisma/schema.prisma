@@ -160,12 +160,12 @@ model CartItem {
 model Order {
   id            String        @id @default(cuid())
   userId        String
-  grossAmount   Float
+  grossAmount   Float?
   processorFee  Float?
   netAmount     Float?
-  platformCommission Float
-  vendorEarnings Float
-  commissionRate Float
+  platformCommission Float?
+  vendorEarnings Float?
+  commissionRate Float?
   total         Float
   status        OrderStatus   @default(PENDING)
   paymentStatus PaymentStatus @default(PENDING)
@@ -185,12 +185,12 @@ model OrderItem {
   productId String
   quantity  Int
   price     Float
-  grossAmount Float
+  grossAmount Float?
   processorFee Float?
   netAmount Float?
-  platformCommission Float
-  vendorEarnings Float
-  commissionRate Float
+  platformCommission Float?
+  vendorEarnings Float?
+  commissionRate Float?
   createdAt DateTime @default(now())
 
   order   Order   @relation(fields: [orderId], references: [id], onDelete: Cascade)

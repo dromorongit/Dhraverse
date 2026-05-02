@@ -45,7 +45,19 @@ export async function GET(request: NextRequest) {
           paymentStatus: 'PAID'
         }
       },
-      include: {
+      select: {
+        id: true,
+        orderId: true,
+        productId: true,
+        quantity: true,
+        price: true,
+        grossAmount: true,
+        processorFee: true,
+        netAmount: true,
+        platformCommission: true,
+        vendorEarnings: true,
+        commissionRate: true,
+        createdAt: true,
         product: {
           select: { name: true }
         },
