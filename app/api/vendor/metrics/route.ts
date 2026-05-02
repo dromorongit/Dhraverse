@@ -63,24 +63,46 @@ export async function GET(request: NextRequest) {
 
     const activeOrderCount = activeOrders.length
 
-    // Get completed orders that contain vendor's products and calculate revenue - only paid orders
-    const completedOrders = await getPrisma().orderItem.findMany({
-      where: {
-        productId: { in: productIds },
-        order: {
-          status: 'COMPLETED',
-          paymentStatus: 'PAID' // Only count paid orders in revenue
-        }
-      },
-      select: {
-        price: true,
-        quantity: true
-      }
-    })
-
-    const revenue = completedOrders.reduce((total: number, item: { price: number; quantity: number }) => {
-      return total + (item.price * item.quantity)
-    }, 0)
+     // Get completed orders that contain vendor's products and calculate revenue and vendor earnings - only paid orders
+     const completedOrders = await getPrisma().orderItem.findMany({
+       where: {
+         productId: { in: productIds },
+         order: {
+           status: 'COMPLETED',
+           paymentStatus: 'PAID' // Only count paid orders in revenue
+         }
+       },
+       select: {
+         vendorEarnings: true
+       }
+     })
+ 
+     // Calculate total vendor earnings (already has commission deducted)
+     let totalVendorEarnings = 0
+     for (const item of completedOrders) {
+       if (item.vendorEarnings !== null) {
+         totalVendorEarnings += item.vendorEarnings
+       }
+     }
+ 
+     // For backward compatibility, also calculate gross revenue
+     const grossRevenueOrders = await getPrisma().orderItem.findMany({
+       where: {
+         productId: { in: productIds },
+         order: {
+           status: 'COMPLETED',
+           paymentStatus: 'PAID' // Only count paid orders in revenue
+         }
+       },
+       select: {
+         price: true,
+         quantity: true
+       }
+     })
+ 
+     const revenue = grossRevenueOrders.reduce((total: number, item: { price: number; quantity: number }) => {
+       return total + (item.price * item.quantity)
+     }, 0)
 
     // Get average product rating
     const productReviews = await getPrisma().review.aggregate({
@@ -129,15 +151,16 @@ export async function GET(request: NextRequest) {
        totalSold: b._sum.quantity || 0
      }))
 
-    return NextResponse.json({
-      productCount,
-      activeOrderCount,
-      revenue,
-      averageRating: productReviews._avg.rating || 0,
-      totalReviews: productReviews._count.rating || 0,
-      bestSellers: bestSellersWithNames,
-      totalPaidOrders: activeOrders.length + completedOrders.length
-    })
+     return NextResponse.json({
+       productCount,
+       activeOrderCount,
+       revenue,
+       vendorEarnings: totalVendorEarnings,
+       averageRating: productReviews._avg.rating || 0,
+       totalReviews: productReviews._count.rating || 0,
+       bestSellers: bestSellersWithNames,
+       totalPaidOrders: activeOrders.length + completedOrders.length
+     })
   } catch (error) {
     console.error('Error fetching vendor metrics:', error)
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 })

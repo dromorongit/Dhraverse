@@ -1,0 +1,115 @@
+// Centralized revenue calculation logic for Dhream Market
+import { formatCurrency } from './currency'
+
+/**
+ * Configuration for commission rates
+ * In a real application, this might come from a database or environment variables
+ */
+export const COMMISSION_CONFIG = {
+  // Default commission rate (6%)
+  DEFAULT_RATE: 0.06,
+  // Could be extended to support vendor-specific rates in the future
+}
+
+/**
+ * Vendor commission rate cache
+ * In production, this would be stored in the database
+ */
+const vendorCommissionRates: Map<string, number> = new Map()
+
+/**
+ * Get the commission rate for a vendor
+ * @param vendorId - The vendor's user ID
+ * @returns The commission rate to use (defaults to COMMISSION_CONFIG.DEFAULT_RATE)
+ */
+export function getVendorCommissionRate(vendorId: string | null | undefined): number {
+  if (!vendorId) return COMMISSION_CONFIG.DEFAULT_RATE
+  return vendorCommissionRates.get(vendorId) ?? COMMISSION_CONFIG.DEFAULT_RATE
+}
+
+/**
+ * Set a custom commission rate for a vendor
+ * @param vendorId - The vendor's user ID
+ * @param rate - The commission rate (e.g., 0.06 for 6%)
+ */
+export function setVendorCommissionRate(vendorId: string, rate: number): void {
+  vendorCommissionRates.set(vendorId, rate)
+}
+
+/**
+ * Clear all cached vendor commission rates
+ */
+export function clearVendorCommissionRates(): void {
+  vendorCommissionRates.clear()
+}
+
+/**
+ * Calculate financial breakdown for an order or order item
+ * @param grossAmount - The total amount before any fees
+ * @param processorFee - The payment processor fee (if known, otherwise null)
+ * @param commissionRate - The commission rate to apply (defaults to COMMISSION_CONFIG.DEFAULT_RATE)
+ * @returns Object containing all financial calculations
+ */
+export function calculateFinancialBreakdown(
+  grossAmount: number,
+  processorFee: number | null = null,
+  commissionRate: number = COMMISSION_CONFIG.DEFAULT_RATE
+) {
+  // Calculate net amount (gross - processor fee) if fee is known
+  const netAmount = processorFee !== null ? grossAmount - processorFee : null
+  
+  // Calculate platform commission
+  const platformCommission = grossAmount * commissionRate
+  
+  // Calculate vendor earnings (net amount - platform commission) if net amount is known
+  const vendorEarnings = netAmount !== null ? netAmount - platformCommission : null
+  
+  return {
+    grossAmount,
+    processorFee,
+    netAmount,
+    platformCommission,
+    vendorEarnings,
+    commissionRate
+  }
+}
+
+/**
+ * Format financial values as currency strings using GHS
+ * @param financialBreakdown - The financial breakdown object from calculateFinancialBreakdown
+ * @returns Object with formatted currency strings
+ */
+export function formatFinancialBreakdown(financialBreakdown: ReturnType<typeof calculateFinancialBreakdown>) {
+  return {
+    grossAmount: formatCurrency(financialBreakdown.grossAmount),
+    processorFee: financialBreakdown.processorFee !== null 
+      ? formatCurrency(financialBreakdown.processorFee) 
+      : null,
+    netAmount: financialBreakdown.netAmount !== null 
+      ? formatCurrency(financialBreakdown.netAmount) 
+      : null,
+    platformCommission: formatCurrency(financialBreakdown.platformCommission),
+    vendorEarnings: financialBreakdown.vendorEarnings !== null 
+      ? formatCurrency(financialBreakdown.vendorEarnings) 
+      : null,
+    commissionRate: `${(financialBreakdown.commissionRate * 100).toFixed(2)}%`
+  }
+}
+
+/**
+ * Calculate apportioned processor fee for an order item based on its contribution to gross amount
+ * @param itemGross - The gross amount for this order item
+ * @param orderGross - The total gross amount for the order
+ * @param totalProcessorFee - The total processor fee for the order
+ * @returns The apportioned processor fee for this item, or null if total fee is unknown
+ */
+export function apportionProcessorFee(
+  itemGross: number,
+  orderGross: number,
+  totalProcessorFee: number | null
+): number | null {
+  if (totalProcessorFee === null || orderGross === 0) {
+    return null
+  }
+  return (itemGross / orderGross) * totalProcessorFee
+}

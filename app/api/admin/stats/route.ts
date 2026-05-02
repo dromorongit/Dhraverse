@@ -13,7 +13,7 @@ export async function GET(request: NextRequest) {
       return authCheck
     }
 
-    // Get counts
+    // Get counts and financial data
     const [
       totalUsers,
       totalVendors,
@@ -31,7 +31,16 @@ export async function GET(request: NextRequest) {
       prisma.order.count(),
       prisma.order.findMany({
         where: { paymentStatus: 'PAID' },
-        select: { total: true },
+        select: { 
+          id: true,
+          grossAmount: true,
+          processorFee: true,
+          netAmount: true,
+          platformCommission: true,
+          vendorEarnings: true,
+          commissionRate: true,
+          total: true,
+        },
       }),
       prisma.store.count({ where: { isVerified: true } }),
       prisma.order.findMany({
@@ -64,8 +73,41 @@ export async function GET(request: NextRequest) {
       }),
     ])
 
-    // Calculate total revenue from paid orders
-    const totalRevenue = paidOrders.reduce((accumulator: number, currentValue: { total: number }) => accumulator + currentValue.total, 0)
+    // Calculate financial totals from paid orders
+    let totalGrossAmount = 0
+    let totalProcessorFee = 0
+    let totalNetAmount = 0
+    let totalPlatformCommission = 0
+    let totalVendorEarnings = 0
+    let totalRevenue = 0 // For backward compatibility
+    
+    paidOrders.forEach((order: any) => {
+      // Use grossAmount if available, fallback to total
+      const gross = order.grossAmount !== null && order.grossAmount !== undefined ? order.grossAmount : order.total
+      totalGrossAmount += gross
+      
+      // Processor fee might be null
+      if (order.processorFee !== null && order.processorFee !== undefined) {
+        totalProcessorFee += order.processorFee
+      }
+      
+      // Net amount might be null
+      if (order.netAmount !== null && order.netAmount !== undefined) {
+        totalNetAmount += order.netAmount
+      }
+      
+      // Platform commission and vendor earnings
+      if (order.platformCommission !== null && order.platformCommission !== undefined) {
+        totalPlatformCommission += order.platformCommission
+      }
+      
+      if (order.vendorEarnings !== null && order.vendorEarnings !== undefined) {
+        totalVendorEarnings += order.vendorEarnings
+      }
+      
+      // For backward compatibility, use total or gross amount
+      totalRevenue += gross
+    })
 
     // Count reviews and categories
     const [totalReviews, totalCategories] = await Promise.all([
@@ -80,7 +122,12 @@ export async function GET(request: NextRequest) {
         totalProducts,
         totalOrders,
         verifiedVendors,
-        totalRevenue,
+        totalGrossAmount,
+        totalProcessorFee,
+        totalNetAmount,
+        totalPlatformCommission,
+        totalVendorEarnings,
+        totalRevenue, // Keep for backward compatibility
         totalReviews,
         totalCategories,
         paidOrderCount: paidOrders.length,

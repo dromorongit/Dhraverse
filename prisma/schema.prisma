@@ -48,6 +48,7 @@ model User {
   reviews       Review[]
   notifications Notification[]
   feedbacks     Feedback[]
+  vendorPayouts VendorPayout[] @relation("VendorPayoutVendor")
 
   @@map("users")
 }
@@ -76,8 +77,9 @@ model Store {
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
 
-  user     User      @relation(fields: [userId], references: [id], onDelete: Cascade)
-  products Product[]
+  user         User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  products     Product[]
+  vendorPayouts VendorPayout[] @relation("VendorPayoutStore")
 
   @@map("stores")
 }
@@ -158,6 +160,12 @@ model CartItem {
 model Order {
   id            String        @id @default(cuid())
   userId        String
+  grossAmount   Float
+  processorFee  Float?
+  netAmount     Float?
+  platformCommission Float
+  vendorEarnings Float
+  commissionRate Float
   total         Float
   status        OrderStatus   @default(PENDING)
   paymentStatus PaymentStatus @default(PENDING)
@@ -177,6 +185,12 @@ model OrderItem {
   productId String
   quantity  Int
   price     Float
+  grossAmount Float
+  processorFee Float?
+  netAmount Float?
+  platformCommission Float
+  vendorEarnings Float
+  commissionRate Float
   createdAt DateTime @default(now())
 
   order   Order   @relation(fields: [orderId], references: [id], onDelete: Cascade)
@@ -263,4 +277,30 @@ model Feedback {
   user      User        @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@map("feedbacks")
+}
+
+model VendorPayout {
+  id          String   @id @default(cuid())
+  vendorId    String
+  storeId     String
+  amount      Float
+  status      PayoutStatus
+  reference   String?
+  note        String?
+  paidAt      DateTime?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  vendor User @relation("VendorPayoutVendor", fields: [vendorId], references: [id])
+  store  Store @relation("VendorPayoutStore", fields: [storeId], references: [id])
+
+  @@map("vendor_payouts")
+}
+
+enum PayoutStatus {
+  PENDING
+  PROCESSING
+  PAID
+  FAILED
+  CANCELLED
 }

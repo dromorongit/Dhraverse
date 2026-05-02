@@ -32,6 +32,7 @@ interface VendorMetrics {
   productCount: number
   activeOrderCount: number
   revenue: number
+  vendorEarnings: number
   averageRating: number
   totalReviews: number
   bestSellers: Array<{
@@ -57,6 +58,7 @@ export default function VendorDashboard() {
     productCount: 0,
     activeOrderCount: 0,
     revenue: 0,
+    vendorEarnings: 0,
     averageRating: 0,
     totalReviews: 0,
     bestSellers: [],
@@ -310,75 +312,91 @@ export default function VendorDashboard() {
           </div>
         )}
 
-        {/* Key Metrics */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
-          <Card variant="elevated" className="hover:shadow-xl transition-all duration-300">
-            <CardContent className="p-6">
-              <div className="flex items-center gap-4">
-                <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-amber-500 to-orange-600 flex items-center justify-center">
-                  <svg className="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4" />
-                  </svg>
-                </div>
-                <div>
-                  <p className="text-sm text-slate-500">Products Listed</p>
-                  <p className="text-2xl font-bold text-deep-navy">{loading ? <Skeleton className="h-8 w-16" /> : metrics.productCount}</p>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-
-          <Card variant="elevated" className="hover:shadow-xl transition-all duration-300">
-            <CardContent className="p-6">
-              <div className="flex items-center gap-4">
-                <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-blue-500 to-cyan-600 flex items-center justify-center">
-                  <svg className="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-3 7h3m-3 4h3m-6-4h.01M9 16h.01" />
-                  </svg>
-                </div>
-                <div>
-                  <p className="text-sm text-slate-500">Active Orders</p>
-                  <p className="text-2xl font-bold text-deep-navy">{loading ? <Skeleton className="h-8 w-16" /> : metrics.activeOrderCount}</p>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-
-          <Card variant="elevated" className="hover:shadow-xl transition-all duration-300">
-            <CardContent className="p-6">
-              <div className="flex items-center gap-4">
-                <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-emerald-500 to-teal-600 flex items-center justify-center">
-                  <svg className="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-                  </svg>
-                </div>
-                <div>
-                  <p className="text-sm text-slate-500">Total Revenue</p>
-                  <p className="text-2xl font-bold text-deep-navy">{loading ? <Skeleton className="h-8 w-20" /> : formatPrice(metrics.revenue)}</p>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-
-          <Card variant="elevated" className="hover:shadow-xl transition-all duration-300">
-            <CardContent className="p-6">
-              <div className="flex items-center gap-4">
-                <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-purple-500 to-pink-600 flex items-center justify-center">
-                  <svg className="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
-                  </svg>
-                </div>
-                <div>
-                  <p className="text-sm text-slate-500">Rating</p>
-                  <div className="flex items-center gap-2">
-                    <p className="text-2xl font-bold text-deep-navy">{loading ? <Skeleton className="h-8 w-12" /> : metrics.averageRating.toFixed(1)}</p>
-                    {!loading && metrics.totalReviews > 0 && renderStars(metrics.averageRating)}
-                  </div>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-        </div>
+         {/* Key Metrics */}
+         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+           <Card variant="elevated" className="hover:shadow-xl transition-all duration-300">
+             <CardContent className="p-6">
+               <div className="flex items-center gap-4">
+                 <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-amber-500 to-orange-600 flex items-center justify-center">
+                   <svg className="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4" />
+                   </svg>
+                 </div>
+                 <div>
+                   <p className="text-sm text-slate-500">Products Listed</p>
+                   <p className="text-2xl font-bold text-deep-navy">{loading ? <Skeleton className="h-8 w-16" /> : metrics.productCount}</p>
+                 </div>
+               </div>
+             </CardContent>
+           </Card>
+ 
+           <Card variant="elevated" className="hover:shadow-xl transition-all duration-300">
+             <CardContent className="p-6">
+               <div className="flex items-center gap-4">
+                 <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-blue-500 to-cyan-600 flex items-center justify-center">
+                   <svg className="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-3 7h3m-3 4h3m-6-4h.01M9 16h.01" />
+                   </svg>
+                 </div>
+                 <div>
+                   <p className="text-sm text-slate-500">Active Orders</p>
+                   <p className="text-2xl font-bold text-deep-navy">{loading ? <Skeleton className="h-8 w-16" /> : metrics.activeOrderCount}</p>
+                 </div>
+               </div>
+             </CardContent>
+           </Card>
+ 
+           <Card variant="elevated" className="hover:shadow-xl transition-all duration-300">
+             <CardContent className="p-6">
+               <div className="flex items-center gap-4">
+                 <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-emerald-500 to-teal-600 flex items-center justify-center">
+                   <svg className="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                   </svg>
+                 </div>
+                 <div>
+                   <p className="text-sm text-slate-500">Total Revenue</p>
+                   <p className="text-2xl font-bold text-deep-navy">{loading ? <Skeleton className="h-8 w-20" /> : formatPrice(metrics.revenue)}</p>
+                 </div>
+               </div>
+             </CardContent>
+           </Card>
+ 
+           <Card variant="elevated" className="hover:shadow-xl transition-all duration-300">
+             <CardContent className="p-6">
+               <div className="flex items-center gap-4">
+                 <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-purple-500 to-pink-600 flex items-center justify-center">
+                   <svg className="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                   </svg>
+                 </div>
+                 <div>
+                   <p className="text-sm text-slate-500">Vendor Earnings</p>
+                   <p className="text-2xl font-bold text-deep-navy">{loading ? <Skeleton className="h-8 w-20" /> : formatPrice(metrics.vendorEarnings)}</p>
+                 </div>
+               </div>
+             </CardContent>
+           </Card>
+ 
+           <Card variant="elevated" className="hover:shadow-xl transition-all duration-300">
+             <CardContent className="p-6">
+               <div className="flex items-center gap-4">
+                 <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-purple-500 to-pink-600 flex items-center justify-center">
+                   <svg className="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                   </svg>
+                 </div>
+                 <div>
+                   <p className="text-sm text-slate-500">Rating</p>
+                   <div className="flex items-center gap-2">
+                     <p className="text-2xl font-bold text-deep-navy">{loading ? <Skeleton className="h-8 w-12" /> : metrics.averageRating.toFixed(1)}</p>
+                     {!loading && metrics.totalReviews > 0 && renderStars(metrics.averageRating)}
+                   </div>
+                 </div>
+               </div>
+             </CardContent>
+           </Card>
+         </div>
 
         {/* Store Insights */}
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">

@@ -14,6 +14,11 @@ interface PlatformStats {
   totalProducts: number
   totalOrders: number
   verifiedVendors: number
+  totalGrossAmount: number
+  totalProcessorFee: number
+  totalNetAmount: number
+  totalPlatformCommission: number
+  totalVendorEarnings: number
   totalRevenue: number
   totalReviews: number
   totalCategories: number
@@ -268,31 +273,54 @@ export default function AdminDashboard() {
           </Card>
         </div>
 
-        {/* Revenue Card */}
-        <Card variant="elevated" className="mb-8 overflow-hidden">
-          <div className="absolute inset-0 bg-gradient-to-br from-royal-blue/90 to-purple-900/90"></div>
-          <CardContent className="p-8 relative">
-            <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-6">
-              <div>
-                <h3 className="text-lg font-semibold text-white/90 mb-2">Total Platform Revenue</h3>
-                <p className="text-4xl sm:text-5xl font-bold text-white mb-2">
-                  {formatCurrency(stats?.totalRevenue || 0)}
-                </p>
-                <p className="text-slate-300">
-                  From {stats?.paidOrderCount.toLocaleString() || 0} paid orders
-                </p>
-              </div>
-              <div className="flex gap-3">
-                <Button variant="outline" size="sm" className="border-white/20 text-white hover:bg-white/10">
-                  Export Report
-                </Button>
-                <Button variant="outline" size="sm" className="border-white/20 text-white hover:bg-white/10" onClick={fetchStats}>
-                  Refresh
-                </Button>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
+         {/* Revenue Card */}
+         <Card variant="elevated" className="mb-8 overflow-hidden">
+           <div className="absolute inset-0 bg-gradient-to-br from-royal-blue/90 to-purple-900/90"></div>
+           <CardContent className="p-8 relative">
+             <div className="space-y-6">
+               <div className="border-t border-slate-200 pt-6">
+                 <h3 className="text-lg font-semibold text-white/90 mb-4">Financial Overview</h3>
+                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 text-slate-300">
+                   <div>
+                     <p className="text-sm font-medium">Gross Sales</p>
+                     <p className="text-2xl font-bold text-white">{formatCurrency(stats?.totalGrossAmount || 0)}</p>
+                   </div>
+                   <div>
+                     <p className="text-sm font-medium">Processor Fees</p>
+                     <p className="text-2xl font-bold text-white">{formatCurrency(stats?.totalProcessorFee || 0)}</p>
+                   </div>
+                   <div>
+                     <p className="text-sm font-medium">Platform Commission</p>
+                     <p className="text-2xl font-bold text-white">{formatCurrency(stats?.totalPlatformCommission || 0)}</p>
+                   </div>
+                   <div>
+                     <p className="text-sm font-medium">Vendor Earnings</p>
+                     <p className="text-2xl font-bold text-white">{formatCurrency(stats?.totalVendorEarnings || 0)}</p>
+                   </div>
+                 </div>
+               </div>
+               <div className="flex justify-between items-center">
+                 <div>
+                   <h3 className="text-lg font-semibold text-white/90 mb-2">Total Platform Revenue</h3>
+                   <p className="text-4xl sm:text-5xl font-bold text-white mb-2">
+                     {formatCurrency(stats?.totalRevenue || 0)}
+                   </p>
+                   <p className="text-slate-300">
+                     From {stats?.paidOrderCount.toLocaleString() || 0} paid orders
+                   </p>
+                 </div>
+                 <div className="flex gap-3">
+                   <Button variant="outline" size="sm" className="border-white/20 text-white hover:bg-white/10">
+                     Export Report
+                   </Button>
+                   <Button variant="outline" size="sm" className="border-white/20 text-white hover:bg-white/10" onClick={fetchStats}>
+                     Refresh
+                   </Button>
+                 </div>
+               </div>
+             </div>
+           </CardContent>
+         </Card>
 
         {/* Quick Stats Row */}
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
@@ -359,16 +387,26 @@ export default function AdminDashboard() {
                     <span className="text-sm font-medium text-slate-700">Manage Products</span>
                   </Button>
                 </Link>
-                <Link href="/dashboard/admin/orders">
-                  <Button variant="ghost" className="flex flex-col items-center gap-2 p-4 hover:bg-slate-50 group w-full">
-                    <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-amber-500 to-orange-600 flex items-center justify-center group-hover:scale-110 transition-transform">
-                      <svg className="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-3 7h3m-3 4h3m-6-4h.01M9 16h.01" />
-                      </svg>
-                    </div>
-                    <span className="text-sm font-medium text-slate-700">View Orders</span>
-                  </Button>
-                </Link>
+                 <Link href="/dashboard/admin/orders">
+                   <Button variant="ghost" className="flex flex-col items-center gap-2 p-4 hover:bg-slate-50 group w-full">
+                     <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-amber-500 to-orange-600 flex items-center justify-center group-hover:scale-110 transition-transform">
+                       <svg className="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-3 7h3m-3 4h3m-6-4h.01M9 16h.01" />
+                       </svg>
+                     </div>
+                     <span className="text-sm font-medium text-slate-700">View Orders</span>
+                   </Button>
+                 </Link>
+                 <Link href="/dashboard/admin/payouts">
+                   <Button variant="ghost" className="flex flex-col items-center gap-2 p-4 hover:bg-slate-50 group w-full">
+                     <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-indigo-500 to-purple-600 flex items-center justify-center group-hover:scale-110 transition-transform">
+                       <svg className="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 16l-4-4m0 0l4-4m-4 4h14m-5 4v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6m5 4h6" />
+                       </svg>
+                     </div>
+                     <span className="text-sm font-medium text-slate-700">Manage Payouts</span>
+                   </Button>
+                 </Link>
               </div>
             </CardContent>
           </Card>
