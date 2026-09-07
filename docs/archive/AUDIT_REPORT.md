@@ -1,3 +1,5 @@
+> ARCHIVED: This report's Section on cookie file git-tracking status was later found to be incorrect — see DHREAM-MARKET-FILE-CLEANUP-AUDIT-001 for the corrected finding.
+
 # Dhream Market — Full Codebase Audit Report
 **Task ID:** DHREAM-MARKET-AUDIT-001  
 **Date:** 2026-09-07  

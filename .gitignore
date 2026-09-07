@@ -37,8 +37,15 @@ yarn-error.log*
 # vercel
 .vercel
 
-# typescript
-*.tsbuildinfo
-next-env.d.ts
+# scratch / temp artifacts
+tsconfig.tsbuildinfo
+
+# session cookie files (security risk if committed)
+cookies.txt
+prod_cookies*.txt
+
+# local database files
+*.db
+dev.db
 
 /generated/prisma
