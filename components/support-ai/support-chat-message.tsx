@@ -9,13 +9,14 @@ interface SupportChatMessageProps {
     confidence?: number
     suggestedEscalation?: boolean
   }
+  onEscalate?: () => void
 }
 
 function formatTime(date: Date): string {
   return new Date(date).toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' })
 }
 
-export function SupportChatMessage({ message }: SupportChatMessageProps) {
+export function SupportChatMessage({ message, onEscalate }: SupportChatMessageProps) {
   const isUser = message.role === 'user'
 
   return (
@@ -34,10 +35,18 @@ export function SupportChatMessage({ message }: SupportChatMessageProps) {
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 10h.01M12 10h.01M16 10h.01M9 16H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-5l-5 5v-5z" />
               </svg>
             </div>
-            <span className="text-[11px] font-semibold text-royal-blue">Support AI</span>
+            <span className="text-[11px] font-semibold text-royal-blue">Dhream Market Support AI</span>
           </div>
         )}
         <p className="text-sm whitespace-pre-wrap leading-relaxed">{message.content}</p>
+        {message.suggestedEscalation && onEscalate && (
+          <button
+            onClick={onEscalate}
+            className="mt-2 text-xs font-semibold text-royal-blue underline underline-offset-2 hover:text-deep-navy transition-colors"
+          >
+            Talk to a human
+          </button>
+        )}
         <p className={`text-xs mt-1 ${isUser ? 'text-white/70' : 'text-slate-400'}`}>
           {formatTime(message.timestamp)}
         </p>

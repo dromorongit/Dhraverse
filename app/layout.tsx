@@ -9,7 +9,6 @@ import { CookieConsentBanner } from '@/components/CookieConsentBanner'
 import { OrganizationJsonLd } from '@/components/seo/OrganizationJsonLd'
 import GoogleAnalytics from '@/components/GoogleAnalytics'
 import { getServerSession } from '@/lib/auth'
-import LiveSupportWidget from '@/components/LiveSupportWidget'
 import BackToSchoolPromo from '@/components/BackToSchoolPromo'
 import { SupportChatWidget } from '@/components/support-ai/support-chat-widget'
 import { Suspense } from 'react'
@@ -60,11 +59,10 @@ export default async function RootLayout({
             <main className="min-h-screen">
               {children}
             </main>
-            <Footer />
-             <CookieConsentBanner />
-              <LiveSupportWidget userRole={session?.role ?? null} />
-              <SupportChatWidget userRole={session?.role ?? null} />
-              <BackToSchoolPromo />
+             <Footer />
+              <CookieConsentBanner />
+               <SupportChatWidget userRole={session?.role ?? null} />
+               <BackToSchoolPromo />
            </QueryProvider>
         </CartProvider>
       </body>
