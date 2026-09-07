@@ -11,6 +11,7 @@ import GoogleAnalytics from '@/components/GoogleAnalytics'
 import { getServerSession } from '@/lib/auth'
 import LiveSupportWidget from '@/components/LiveSupportWidget'
 import BackToSchoolPromo from '@/components/BackToSchoolPromo'
+import { SupportChatWidget } from '@/components/support-ai/support-chat-widget'
 import { Suspense } from 'react'
 
 export const viewport: Viewport = {
@@ -61,8 +62,9 @@ export default async function RootLayout({
             </main>
             <Footer />
              <CookieConsentBanner />
-             <LiveSupportWidget userRole={session?.role ?? null} />
-             <BackToSchoolPromo />
+              <LiveSupportWidget userRole={session?.role ?? null} />
+              <SupportChatWidget userRole={session?.role ?? null} />
+              <BackToSchoolPromo />
            </QueryProvider>
         </CartProvider>
       </body>

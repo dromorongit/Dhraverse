@@ -730,7 +730,14 @@ export async function GET(_request: NextRequest) {
            brands: dedupedBrands.slice(0, 10),
          }
       })),
-      fetchActiveAds(prisma),
+      (async () => {
+        try {
+          return await fetchActiveAds(prisma)
+        } catch (e) {
+          console.error('[homepage/public] fetchActiveAds failed:', e)
+          return []
+        }
+      })(),
     ]) as any
 
     const formatted = sectionsResult.map((result: any, index: number) => {
@@ -755,7 +762,7 @@ export async function GET(_request: NextRequest) {
       }
     })
 
-    const ads = groupAdsBySlot(activeAdsResult.status === 'fulfilled' ? activeAdsResult.value : [])
+    const ads = groupAdsBySlot(Array.isArray(activeAdsResult) ? activeAdsResult : [])
 
     const formattedBrands = (brands || []).map((brand) => ({
       id: brand.id,

@@ -43,6 +43,7 @@ export const RATE_LIMIT_CONFIGS: Record<string, RateLimitConfig> = {
   'admin-service-categories': { windowMs: 60 * 1000, maxRequests: 100 },
   'admin-services': { windowMs: 60 * 1000, maxRequests: 100 },
   'admin-advertisements': { windowMs: 60 * 1000, maxRequests: 100 },
+  'support-ai-chat': { windowMs: 60 * 1000, maxRequests: 20 },
   'support-stream': { windowMs: 60 * 1000, maxRequests: 5 },
   'admin-support-stream': { windowMs: 60 * 1000, maxRequests: 10 },
 }
