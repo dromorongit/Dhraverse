@@ -42,7 +42,7 @@ export function SupportChatWidget({ userRole }: { userRole?: string | null }) {
 
   useEffect(() => {
     scrollToBottom()
-  }, [messages, scrollToBottom])
+  }, [aiMessages, scrollToBottom])
 
   useEffect(() => {
     if (isOpen) {
