@@ -25,6 +25,7 @@ import { AIRecommendations } from '@/components/ai'
 import { AITrending } from '@/components/ai'
 import { getBlurDataURL, CARD_IMAGE_SIZES, CARD_IMAGE_SIZES_4COL, CARD_IMAGE_SIZES_6COL, VENDOR_LOGO_SIZES } from '@/lib/image-utils'
 import WhatsAppFloatButton from '@/components/WhatsAppFloatButton'
+import DhreamSellerBadge from '@/components/DhreamSellerBadge'
 
 interface Product {
   id: string
@@ -1049,6 +1050,9 @@ function MarketplaceContent() {
                         )}
                       </div>
                       <CardContent className="p-4 min-w-0">
+                        <div className="mb-1">
+                          <DhreamSellerBadge className="w-5 h-5" />
+                        </div>
                         <div className="flex items-center gap-1 min-w-0">
                           <h3 className="text-lg font-semibold text-deep-navy mb-1 group-hover:text-royal-blue transition-colors min-w-0 overflow-hidden text-ellipsis line-clamp-1">
                             {truncateVendorName(vendor.name)}

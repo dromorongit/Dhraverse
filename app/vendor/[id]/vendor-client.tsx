@@ -19,6 +19,7 @@ import { ProductBadges, calculateProductBadges } from '@/components/ProductBadge
 import { ProductStockIndicator } from '@/components/ProductStockIndicator'
 import { VendorFollowButton } from '@/components/VendorFollowButton'
 import { TrustBadge } from '@/components/TrustBadges'
+import DhreamSellerBadge from '@/components/DhreamSellerBadge'
 import { getBlurDataURL, HERO_IMAGE_SIZES, CARD_IMAGE_SIZES, CARD_IMAGE_SIZES_3COL, VENDOR_LOGO_SIZES } from '@/lib/image-utils'
 
 interface VendorProduct {
@@ -400,6 +401,9 @@ export default function VendorProfilePage() {
             </div>
 
             <div className="flex-1 text-center md:text-left">
+              <div className="mb-2">
+                <DhreamSellerBadge className="w-8 h-8" />
+              </div>
               <div className="flex flex-wrap items-center justify-center md:justify-start gap-2 mb-2">
                 <h1 className="text-3xl font-bold text-deep-navy">{truncateVendorName(vendor.name)}</h1>
                 {(() => {

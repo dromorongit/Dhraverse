@@ -24,6 +24,7 @@ import { AISimilar } from '@/components/ai'
 import { AICrossSelling } from '@/components/ai'
 import { getTelLink, formatGhanaPhoneNumber } from '@/lib/phone'
 import { addRecentlyViewed } from '@/lib/recently-viewed'
+import DhreamSellerBadge from '@/components/DhreamSellerBadge'
 
 interface ProductImage {
   id: string
@@ -746,6 +747,7 @@ export default function ProductClient({ vendorProducts = [], relatedProducts = [
                             />
                           )
                         })()}
+                        <DhreamSellerBadge className="w-5 h-5" />
                       </div>
                       <Link
                         href={`/vendor/${product.store?.slug ?? product.store?.id}`}

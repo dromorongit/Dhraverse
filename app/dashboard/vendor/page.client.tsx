@@ -7,6 +7,7 @@ import { Card, CardHeader, CardContent } from '@/components/Card'
 import { Button } from '@/components/Button'
 import { Badge } from '@/components/Badge'
 import { formatCurrency } from '@/lib/currency'
+import DhreamSellerBadge from '@/components/DhreamSellerBadge'
 import dynamic from 'next/dynamic'
 
 const AIVendorInsights = dynamic(() => import('@/components/ai').then(m => m.AIVendorInsights), { ssr: false })
@@ -52,6 +53,19 @@ export default function VendorDashboardPage() {
   const [allServices, setAllServices] = useState<VendorService[]>([])
   const [productsLoading, setProductsLoading] = useState(false)
   const [servicesLoading, setServicesLoading] = useState(false)
+  const [storeName, setStoreName] = useState<string | null>(null)
+
+  const fetchStore = useCallback(async () => {
+    try {
+      const res = await fetch('/api/store')
+      if (res.ok) {
+        const data = await res.json()
+        setStoreName(data.store?.name ?? null)
+      }
+    } catch (err) {
+      console.error('Error fetching store:', err)
+    }
+  }, [])
 
   const fetchDashboardData = useCallback(async () => {
     try {
@@ -104,7 +118,8 @@ export default function VendorDashboardPage() {
 
   useEffect(() => {
     fetchDashboardData()
-  }, [fetchDashboardData])
+    fetchStore()
+  }, [fetchDashboardData, fetchStore])
 
   useEffect(() => {
     if (activeTab === 'products') {
@@ -164,6 +179,13 @@ export default function VendorDashboardPage() {
     <div className="min-h-screen bg-gray-50">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         <h1 className="text-3xl font-bold text-deep-navy mb-8">Vendor Dashboard</h1>
+
+        {storeName && (
+          <div className="flex items-center gap-2 mb-8">
+            <span className="text-lg font-medium text-slate-700">{storeName}</span>
+            <DhreamSellerBadge className="w-5 h-5" />
+          </div>
+        )}
 
         <div className="bg-blue-50 border border-blue-200 rounded-xl p-4 mb-8">
           <p className="text-sm text-blue-800">
