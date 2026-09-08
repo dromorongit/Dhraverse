@@ -1051,7 +1051,7 @@ function MarketplaceContent() {
                       </div>
                       <CardContent className="p-4 min-w-0">
                         <div className="mb-1">
-                          <DhreamSellerBadge className="w-5 h-5" />
+                          <DhreamSellerBadge className="h-6 w-auto max-w-none" />
                         </div>
                         <div className="flex items-center gap-1 min-w-0">
                           <h3 className="text-lg font-semibold text-deep-navy mb-1 group-hover:text-royal-blue transition-colors min-w-0 overflow-hidden text-ellipsis line-clamp-1">

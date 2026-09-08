@@ -6,13 +6,13 @@ interface DhreamSellerBadgeProps {
   className?: string
 }
 
-export default function DhreamSellerBadge({ className = 'w-5 h-5' }: DhreamSellerBadgeProps) {
+export default function DhreamSellerBadge({ className = 'h-7 w-auto max-w-none' }: DhreamSellerBadgeProps) {
   return (
     <Image
       src="/assets/images/dhreamsellerbadge.PNG"
       alt="Dhream Seller"
-      width={20}
-      height={20}
+      width={100}
+      height={100}
       className={`inline-block object-contain ${className}`}
     />
   )

@@ -402,7 +402,7 @@ export default function VendorProfilePage() {
 
             <div className="flex-1 text-center md:text-left">
               <div className="mb-2">
-                <DhreamSellerBadge className="w-8 h-8" />
+                <DhreamSellerBadge className="h-10 w-auto max-w-none" />
               </div>
               <div className="flex flex-wrap items-center justify-center md:justify-start gap-2 mb-2">
                 <h1 className="text-3xl font-bold text-deep-navy">{truncateVendorName(vendor.name)}</h1>

@@ -183,7 +183,7 @@ export default function VendorDashboardPage() {
         {storeName && (
           <div className="flex items-center gap-2 mb-8">
             <span className="text-lg font-medium text-slate-700">{storeName}</span>
-            <DhreamSellerBadge className="w-5 h-5" />
+            <DhreamSellerBadge className="h-6 w-auto max-w-none" />
           </div>
         )}
 

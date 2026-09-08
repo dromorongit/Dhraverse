@@ -747,7 +747,7 @@ export default function ProductClient({ vendorProducts = [], relatedProducts = [
                             />
                           )
                         })()}
-                        <DhreamSellerBadge className="w-5 h-5" />
+                        <DhreamSellerBadge className="h-6 w-auto max-w-none" />
                       </div>
                       <Link
                         href={`/vendor/${product.store?.slug ?? product.store?.id}`}
