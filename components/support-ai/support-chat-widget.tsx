@@ -211,7 +211,7 @@ export function SupportChatWidget({ userRole }: { userRole?: string | null }) {
                   value={input}
                   onChange={(e) => { setInput(e.target.value); setError('') }}
                   disabled={loading}
-                  className="flex-1 text-base md:text-sm"
+            className="flex-1 text-base md:text-sm"
                 />
                 <Button
                   type="submit"
@@ -524,7 +524,7 @@ function LiveSupportConversation() {
             value={input}
             onChange={(e) => { setInput(e.target.value); setErrorMessage('') }}
             onKeyDown={handleKeyDown}
-            className="flex-1 text-sm"
+             className="flex-1 text-base md:text-sm"
           />
           <Button
             size="sm"

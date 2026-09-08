@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { getPrisma } from '@/lib/prisma'
 import { PerformanceLogger } from '@/lib/performance'
+import { getCategoryFilterIds } from '@/lib/categories'
 
 export const dynamic = 'force-dynamic'
 
@@ -25,9 +26,17 @@ export async function GET(request: NextRequest) {
       ],
     }
     if (categoryId) {
+      const category = await getPrisma().productCategory.findUnique({
+        where: { id: categoryId },
+        select: { parentId: true },
+      })
+      const categoryIds =
+        category && category.parentId === null
+          ? await getCategoryFilterIds(categoryId)
+          : [categoryId]
       whereClause.OR = [
-        { categoryId },
-        { categoryAssignments: { some: { productCategoryId: categoryId } } },
+        { categoryId: { in: categoryIds } },
+        { categoryAssignments: { some: { productCategoryId: { in: categoryIds } } } },
       ]
     }
     if (brandId) {

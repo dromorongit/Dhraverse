@@ -8,6 +8,7 @@ import { checkAndUpdateExpiredPreOrders } from '@/lib/product-availability'
 import { PerformanceLogger } from '@/lib/performance'
 import { sanitizeUserContent } from '@/lib/sanitize'
 import { canCreateProduct } from '@/lib/subscription/feature-restriction'
+import { getCategoryFilterIds } from '@/lib/categories'
 
 export const dynamic = 'force-dynamic'
 export const revalidate = 120
@@ -125,9 +126,17 @@ export async function GET(request: NextRequest) {
       whereClause.createdAt = { gte: new Date(createdAtMin) }
     }
     if (categoryId) {
+      const category = await getPrisma().productCategory.findUnique({
+        where: { id: categoryId },
+        select: { parentId: true },
+      })
+      const categoryIds =
+        category && category.parentId === null
+          ? await getCategoryFilterIds(categoryId)
+          : [categoryId]
       whereClause.OR = [
-        { categoryId },
-        { categoryAssignments: { some: { productCategoryId: categoryId } } },
+        { categoryId: { in: categoryIds } },
+        { categoryAssignments: { some: { productCategoryId: { in: categoryIds } } } },
       ]
     }
     if (brandId) {
