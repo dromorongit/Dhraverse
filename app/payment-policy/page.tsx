@@ -28,7 +28,7 @@ export default function PaymentPolicyPage() {
               Marketplace Payment Processing & Vendor Payout Policy
             </h1>
             <p className="text-lg sm:text-xl text-slate-300 max-w-2xl mx-auto">
-              Last Updated: 27th May, 2025
+              Last Updated: 8th September, 2026
             </p>
           </div>
         </div>
@@ -65,7 +65,7 @@ export default function PaymentPolicyPage() {
                   </li>
                   <li className="flex items-start gap-3">
                     <span className="w-2 h-2 rounded-full bg-blue-500 mt-2 flex-shrink-0"></span>
-                    <span className="text-slate-600">Paystack transaction charges/fees may be deducted by Paystack before payout settlement.</span>
+                      <span className="text-slate-600">Paystack transaction charges/fees are deducted by Paystack before payout settlement.</span>
                   </li>
                 </ul>
               </section>

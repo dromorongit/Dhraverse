@@ -28,7 +28,7 @@ export default function PrivacyPolicyPage() {
               Privacy Policy
             </h1>
             <p className="text-lg sm:text-xl text-slate-300 max-w-2xl mx-auto">
-               How we protect and handle your data. Last Updated: 27th May, 2025
+               How we protect and handle your data. Last Updated: 8th September, 2026
              </p>
           </div>
         </div>

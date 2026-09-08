@@ -28,7 +28,7 @@ export default function RefundPolicyPage() {
               Refund and Return Policy
             </h1>
             <p className="text-lg sm:text-xl text-slate-300 max-w-2xl mx-auto">
-               Understanding our return and refund processes. Last Updated: 27th May, 2025
+               Understanding our return and refund processes. Last Updated: 8th September, 2026
              </p>
           </div>
         </div>
@@ -75,7 +75,7 @@ export default function RefundPolicyPage() {
                   </li>
                 </ul>
                 <p className="text-slate-600 mt-4">
-                  Returns must be initiated within <strong>7 days</strong> of receiving the product. 
+                  Returns must be initiated within <strong>3 days</strong> of receiving the product. 
                   The product must be in its original condition with all packaging and tags intact.
                 </p>
               </section>
@@ -105,7 +105,7 @@ export default function RefundPolicyPage() {
                   </li>
                   <li className="flex items-start gap-3">
                     <span className="w-2 h-2 rounded-full bg-amber-500 mt-2 flex-shrink-0"></span>
-                    <span className="text-slate-600">Items returned after the 7-day window</span>
+                    <span className="text-slate-600">Items returned after the 3-day window</span>
                   </li>
                   <li className="flex items-start gap-3">
                     <span className="w-2 h-2 rounded-full bg-amber-500 mt-2 flex-shrink-0"></span>
@@ -137,7 +137,7 @@ export default function RefundPolicyPage() {
                 <h3 className="text-xl font-medium text-deep-navy mb-3">Step 4: Refund Processing</h3>
                 <p className="text-slate-600 mb-4">
                   Once the vendor receives and inspects the returned item, the refund will be 
-                  processed within 5-7 business days. The refund will be credited to your 
+                   processed within 3-5 business days. The refund will be credited to your 
                   original payment method.
                 </p>
               </section>
@@ -154,7 +154,7 @@ export default function RefundPolicyPage() {
                   </li>
                   <li className="flex items-start gap-3">
                     <span className="w-2 h-2 rounded-full bg-blue-500 mt-2 flex-shrink-0"></span>
-                    <span className="text-slate-600"><strong>Refund Processing:</strong> 5-7 business days after approval</span>
+                     <span className="text-slate-600"><strong>Refund Processing:</strong> 3-5 business days after approval</span>
                   </li>
                   <li className="flex items-start gap-3">
                     <span className="w-2 h-2 rounded-full bg-blue-500 mt-2 flex-shrink-0"></span>
