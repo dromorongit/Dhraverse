@@ -180,7 +180,7 @@ export default function Home() {
             {/* Trust badge */}
             <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-white/10 backdrop-blur-sm border border-white/20 mb-3 animate-fade-in-up">
               <Badge variant="verified" size="sm">
-                Trusted by 10,000+ Businesses
+                Where Ghana&apos;s Businesses Grow
               </Badge>
             </div>
 
