@@ -22,6 +22,7 @@ function RegisterContent() {
   const [confirmPassword, setConfirmPassword] = useState('')
   const [role, setRole] = useState<Role>('CUSTOMER')
   const [agreedToTerms, setAgreedToTerms] = useState(false)
+  const [ageConsent, setAgeConsent] = useState(false)
   const [error, setError] = useState('')
   const [loading, setLoading] = useState(false)
   const searchParams = useSearchParams()
@@ -93,12 +94,18 @@ function RegisterContent() {
       return
     }
 
+    if (!ageConsent) {
+      setError('You must be 18 years of age or older to create an account')
+      setLoading(false)
+      return
+    }
+
     try {
        const response = await fetch('/api/auth/register', {
-         method: 'POST',
-         headers: { 'Content-Type': 'application/json' },
-         body: JSON.stringify({ email, password, role, mobileNumber, name }),
-       })
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ email, password, role, mobileNumber, name, ageConsent }),
+        })
 
        const data = await response.json()
 
@@ -217,6 +224,13 @@ if (response.ok) {
                   required
                 />
               )}
+              <div className="bg-blue-50 border border-blue-200 rounded-lg p-3">
+                <p className="text-sm text-blue-800">
+                  {role === 'CUSTOMER'
+                    ? 'Place orders and pay only through the verified centralized Dhream Market Paystack.'
+                    : 'Vendors pay a 1% platform commission on all completed orders. Payouts are processed after 2 business days.'}
+                </p>
+              </div>
               <PasswordInput
                 label="Password"
                 value={password}
@@ -246,6 +260,17 @@ if (response.ok) {
                     <Link href="/privacy" className="text-blue-600 hover:text-blue-500 underline">
                       Privacy Policy
                     </Link>
+                  </span>
+                </label>
+                <label className="flex items-start">
+                  <input
+                    type="checkbox"
+                    checked={ageConsent}
+                    onChange={(e) => setAgeConsent(e.target.checked)}
+                    className="mt-1 h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
+                  />
+                  <span className="ml-2 text-sm text-gray-600">
+                    I confirm I am 18 years of age or older.
                   </span>
                 </label>
               </div>

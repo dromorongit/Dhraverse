@@ -273,7 +273,7 @@ export default function AboutPage() {
                 Building Ghana&apos;s Digital Future
               </h2>
               <p className="text-lg text-slate-600 mb-6 leading-relaxed">
-                Dhream Market was founded with the vision of creating a trusted online marketplace 
+                Dhream Market was founded on July 13, 2026, with the vision of creating a trusted online marketplace 
                 that serves the unique needs of Ghanaian businesses and consumers. We recognized 
                 the need for a platform that understands local commerce while offering the modern 
                 technology that online shopping demands.

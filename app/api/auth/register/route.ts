@@ -16,10 +16,14 @@ export async function POST(request: NextRequest) {
   }
 
   try {
-    const { email, password, role, mobileNumber, name } = await request.json()
+    const { email, password, role, mobileNumber, name, ageConsent } = await request.json()
 
     if (!email || !password || !role) {
       return NextResponse.json({ error: 'Email, password, and role are required' }, { status: 400 })
+    }
+
+    if (ageConsent !== true) {
+      return NextResponse.json({ error: 'You must be 18 years of age or older to register' }, { status: 400 })
     }
 
     const normalizedEmail = email.trim().toLowerCase()
