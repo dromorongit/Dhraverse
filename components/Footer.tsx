@@ -28,12 +28,12 @@ export function Footer() {
               <div>
                 <span className="text-xl font-bold text-white">Dhream Market</span>
                 <p className="text-xs text-slate-400 font-medium uppercase tracking-wider">
-                  Smart Commerce
+                  Ghanaian Trade
                 </p>
               </div>
             </Link>
             <p className="text-slate-400 text-sm leading-relaxed max-w-md mb-6">
-              Powering Digital Trade - The Smart Commerce Ecosystem connecting businesses and people worldwide with trust, efficiency, and innovation.
+               Powering Digital Trade - The Trusted Home of Ghanaian Trade, connecting businesses and people worldwide with trust, efficiency, and innovation.
             </p>
             <div className="flex items-center gap-4">
               <span className="text-xs text-slate-500">Verified Secure Platform</span>

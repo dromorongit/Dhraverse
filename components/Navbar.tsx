@@ -275,7 +275,7 @@ export function Navbar() {
                   Dhream Market
                 </span>
                 <span className="text-[9px] sm:text-[10px] font-medium text-muted-text tracking-widest uppercase hidden sm:block">
-                  Smart Commerce Ecosystem
+                  Trusted Home of Ghanaian Trade
                 </span>
               </div>
             </Link>

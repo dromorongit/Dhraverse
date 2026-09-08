@@ -20,17 +20,21 @@ export const viewport: Viewport = {
 
 export const metadata: Metadata = {
   title: {
-    default: 'Dhream Market - Powering Digital Trade',
+    default: 'Dhream Market — The Trusted Home of Ghanaian Trade Online',
     template: '%s | Dhream Market',
   },
-  description: 'Ghana\'s premier digital marketplace. Buy and sell securely with Paystack.',
+  description: 'Shop from verified Ghanaian vendors and pay securely with Paystack. Dhream Market makes online buying and selling in Ghana safe, simple, and fair.',
   openGraph: {
     siteName: 'Dhream Market',
     locale: 'en_GH',
     type: 'website',
+    title: 'Dhream Market — The Trusted Home of Ghanaian Trade Online',
+    description: 'Shop from verified Ghanaian vendors and pay securely with Paystack. Dhream Market makes online buying and selling in Ghana safe, simple, and fair.',
   },
   twitter: {
     card: 'summary_large_image',
+    title: 'Dhream Market — The Trusted Home of Ghanaian Trade Online',
+    description: 'Shop from verified Ghanaian vendors and pay securely with Paystack. Dhream Market makes online buying and selling in Ghana safe, simple, and fair.',
   },
   icons: {
     icon: [{ url: '/favicon.ico', sizes: 'any' }, { url: '/icon.png', type: 'image/png', sizes: '512x512' }],

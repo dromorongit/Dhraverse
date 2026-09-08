@@ -5,7 +5,7 @@ import { Badge } from '@/components/Badge'
 
 export const metadata = {
   title: 'About Us - Dhream Market',
-  description: 'Learn about Dhream Market - The Smart Commerce Ecosystem powering digital trade in Ghana.',
+  description: 'Learn about Dhream Market - the trusted home of Ghanaian trade online.',
 }
 
 export default function AboutPage() {
@@ -29,7 +29,7 @@ export default function AboutPage() {
               About Dhream Market
             </h1>
             <p className="text-lg sm:text-xl text-slate-300 max-w-3xl mx-auto leading-relaxed">
-              The Smart Commerce Ecosystem powering digital trade in Ghana. We are dedicated to 
+              The trusted home of Ghanaian trade online. We are dedicated to
               connecting vendors and customers through a seamless, secure, and modern e-commerce platform.
             </p>
           </div>
@@ -38,6 +38,16 @@ export default function AboutPage() {
 
       {/* Main Content */}
       <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-16 lg:py-24">
+        {/* Positioning Intro */}
+        <div className="text-center mb-16 lg:mb-24">
+          <Badge variant="premium" className="mb-6 mx-auto">
+            Our Promise
+          </Badge>
+          <p className="text-xl sm:text-2xl text-slate-600 max-w-4xl mx-auto leading-relaxed">
+            Dhream Market is the trusted home of Ghanaian trade online — built for the SMEs and shoppers who power our economy every day.
+          </p>
+        </div>
+
         {/* Mission Section */}
         <div className="text-center mb-16 lg:mb-24">
           <Badge variant="default" className="mb-6">
@@ -258,6 +268,50 @@ export default function AboutPage() {
                 <h3 className="text-lg font-semibold text-deep-navy mb-2">Fast Growth</h3>
                 <p className="text-sm text-slate-600">
                   Continuously evolving platform with new features and improvements
+                </p>
+              </CardContent>
+            </Card>
+
+            <Card variant="outline" className="p-6 hover:border-royal-blue/50 transition-colors">
+              <CardContent className="p-0">
+                <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-green-500 to-teal-500 flex items-center justify-center mb-4">
+                  <svg className="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" />
+                  </svg>
+                </div>
+                <h3 className="text-lg font-semibold text-deep-navy mb-2">Trust &amp; Safety</h3>
+                <p className="text-sm text-slate-600">
+                  Verified vendors, clear policies, and fast dispute resolution
+                </p>
+              </CardContent>
+            </Card>
+
+            <Card variant="outline" className="p-6 hover:border-royal-blue/50 transition-colors">
+              <CardContent className="p-0">
+                <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-yellow-400 to-amber-500 flex items-center justify-center mb-4">
+                  <svg className="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8c-2.21 0-4-1.79-4 4s1.79 4 4 4 4-1.79 4-4-1.79-4-4-4s-4-1.79-4-4z" />
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 2v4m0 12v4M4 12h4m12 0h4" />
+                  </svg>
+                </div>
+                <h3 className="text-lg font-semibold text-deep-navy mb-2">Local Pride</h3>
+                <p className="text-sm text-slate-600">
+                  Made in Ghana, supporting Ghanaian businesses and communities
+                </p>
+              </CardContent>
+            </Card>
+
+            <Card variant="outline" className="p-6 hover:border-royal-blue/50 transition-colors">
+              <CardContent className="p-0">
+                <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-indigo-500 to-purple-500 flex items-center justify-center mb-4">
+                  <svg className="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 7h18v2a2 2 0 01-2 2H7a2 2 0 01-2-2V7z" />
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 11V5a4 4 0 018 0v6h2l-4 4-4-4h2z" />
+                  </svg>
+                </div>
+                <h3 className="text-lg font-semibold text-deep-navy mb-2">Simplicity</h3>
+                <p className="text-sm text-slate-600">
+                  Easy onboarding, clear fees, straightforward checkout and payouts
                 </p>
               </CardContent>
             </Card>

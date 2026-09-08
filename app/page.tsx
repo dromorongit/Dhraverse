@@ -195,12 +195,12 @@ export default function Home() {
             <div className="flex flex-col sm:flex-row gap-4 justify-center items-center animate-fade-in-up" style={{ animationDelay: '0.4s' }}>
               <Link href="/register">
               <Button size="md" className="rounded-full shadow-lg shadow-royal-blue/30">
-                Get Started Free
+                Start Selling
               </Button>
               </Link>
               <Link href="/marketplace">
               <Button variant="outline" size="md" className="rounded-full border-white/30 text-white hover:bg-white/10">
-                Explore Marketplace
+                Shop Now
               </Button>
               </Link>
             </div>
