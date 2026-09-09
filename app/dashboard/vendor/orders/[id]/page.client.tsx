@@ -125,6 +125,7 @@ export default function VendorOrderDetailPageClient() {
   const [showRejectionDialog, setShowRejectionDialog] = useState(false)
   const [vendorReply, setVendorReply] = useState('')
   const [respondingToRefund, setRespondingToRefund] = useState<string | null>(null)
+  const [pendingStatusUpdate, setPendingStatusUpdate] = useState<string | null>(null)
 
   useEffect(() => {
     if (orderId) {
@@ -230,6 +231,49 @@ export default function VendorOrderDetailPageClient() {
     if (order.vendorAccepted) return 'ACCEPTED'
     if (order.vendorRejected) return 'REJECTED'
     return 'PENDING'
+  }
+
+  const VENDOR_VALID_STATUSES = ['PROCESSING', 'SHIPPED', 'DELIVERED', 'COMPLETED']
+
+  const getNextValidStatus = (currentStatus: string): string | null => {
+    const transitions: Record<string, string> = {
+      PENDING: 'PROCESSING',
+      PROCESSING: 'SHIPPED',
+      SHIPPED: 'DELIVERED',
+      DELIVERED: 'COMPLETED',
+    }
+    return transitions[currentStatus] || null
+  }
+
+  const handleStatusUpdate = async (newStatus: string) => {
+    if (!order) return
+    setUpdatingStatus(true)
+    try {
+      const response = await fetch(`/api/vendor/orders/${order.id}`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ status: newStatus }),
+      })
+
+      if (!response.ok) {
+        const errorData = await response.json()
+        alert(errorData.error || 'Failed to update status')
+        return
+      }
+
+      const data = await response.json()
+      setOrder((prev) => prev ? {
+        ...prev,
+        status: data.order.status,
+        updatedAt: data.order.updatedAt,
+      } : null)
+      setPendingStatusUpdate(null)
+    } catch (err) {
+      console.error('Error updating status:', err)
+      alert('Failed to update status')
+    } finally {
+      setUpdatingStatus(false)
+    }
   }
 
   const handleSendReply = async (messageType: 'GENERAL' | 'REFUND_APPROVAL' | 'REFUND_REJECTION') => {
@@ -601,6 +645,30 @@ export default function VendorOrderDetailPageClient() {
                 }`}>
                   {ORDER_STATUS_CONFIG[order.status as keyof typeof ORDER_STATUS_CONFIG]?.label || order.status}
                 </span>
+                {order.orderType === 'NORMAL' && ['PROCESSING', 'SHIPPED', 'DELIVERED'].includes(order.status) && (
+                  <select
+                    value=""
+                    onChange={(e) => {
+                      if (e.target.value) {
+                        setPendingStatusUpdate(e.target.value)
+                      }
+                    }}
+                    disabled={updatingStatus}
+                    className="ml-2 text-xs border border-gray-300 rounded px-2 py-1 bg-white disabled:opacity-50"
+                  >
+                    <option value="" disabled>Update status</option>
+                    {VENDOR_VALID_STATUSES.map((status) => {
+                      const nextValid = getNextValidStatus(order.status)
+                      const isEnabled = status === nextValid
+                      return (
+                        <option key={status} value={status} disabled={!isEnabled} title={!isEnabled ? 'Complete previous steps first' : undefined}>
+                          {ORDER_STATUS_CONFIG[status as keyof typeof ORDER_STATUS_CONFIG]?.label || status}
+                          {!isEnabled ? ' (locked)' : ''}
+                        </option>
+                      )
+                    })}
+                  </select>
+                )}
               </div>
               <div>
                 <span className="text-xs text-gray-500 mr-2">Vendor Status:</span>
@@ -679,6 +747,34 @@ export default function VendorOrderDetailPageClient() {
                         className="bg-red-600 hover:bg-red-700"
                       >
                         {updatingStatus ? 'Rejecting...' : 'Reject Order'}
+                      </Button>
+                    </div>
+                  </CardContent>
+                </Card>
+              </div>
+             )}
+            
+            {pendingStatusUpdate && (
+              <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
+                <Card className="w-full max-w-md">
+                  <CardContent className="p-6">
+                    <h3 className="text-lg font-semibold text-gray-900 mb-4">Confirm Status Update</h3>
+                    <p className="text-sm text-gray-600 mb-4">
+                      Mark this order as {ORDER_STATUS_CONFIG[pendingStatusUpdate as keyof typeof ORDER_STATUS_CONFIG]?.label || pendingStatusUpdate}? This will trigger customer-facing notifications.
+                    </p>
+                    <div className="flex gap-3 justify-end mt-4">
+                      <Button
+                        onClick={() => setPendingStatusUpdate(null)}
+                        variant="outline"
+                        disabled={updatingStatus}
+                      >
+                        Cancel
+                      </Button>
+                      <Button
+                        onClick={() => handleStatusUpdate(pendingStatusUpdate)}
+                        disabled={updatingStatus}
+                      >
+                        {updatingStatus ? 'Updating...' : 'Confirm'}
                       </Button>
                     </div>
                   </CardContent>

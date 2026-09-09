@@ -15,6 +15,7 @@ export type FulfillmentEventType =
   | 'PROCESSING'
   | 'SHIPPED'
   | 'DELIVERED'
+  | 'COMPLETED'
   | 'CANCELLED'
   | 'REFUNDED'
   | 'STOCK_RESERVED'
@@ -49,6 +50,7 @@ const EVENT_TITLES: Record<FulfillmentEventType, string> = {
   PROCESSING: 'Processing',
   SHIPPED: 'Shipped',
   DELIVERED: 'Delivered',
+  COMPLETED: 'Completed',
   CANCELLED: 'Cancelled',
   REFUNDED: 'Refunded',
   STOCK_RESERVED: 'Stock Reserved',
@@ -73,6 +75,7 @@ const EVENT_DESCRIPTIONS: Record<FulfillmentEventType, string> = {
   PROCESSING: 'Order is being processed.',
   SHIPPED: 'Order has been shipped.',
   DELIVERED: 'Order has been delivered.',
+  COMPLETED: 'Order has been completed.',
   CANCELLED: 'Order has been cancelled.',
   REFUNDED: 'Order has been refunded and stock released.',
   STOCK_RESERVED: 'Stock has been reserved for your order.',
@@ -104,8 +107,8 @@ const EMAIL_TEMPLATES: Record<FulfillmentEventType, { subject: string; message: 
     message: 'Your order for {productName} is now ready to be fulfilled.',
   },
   PROCESSING: {
-    subject: 'Your Order Has Been Shipped',
-    message: 'Your order #{orderId} has been shipped.',
+    subject: 'Your Order Is Being Processed',
+    message: 'Your order #{orderId} is being processed.',
   },
   SHIPPED: {
     subject: 'Your Order Has Been Shipped',
@@ -114,6 +117,10 @@ const EMAIL_TEMPLATES: Record<FulfillmentEventType, { subject: string; message: 
   DELIVERED: {
     subject: 'Your Order Has Been Delivered',
     message: 'Your order #{orderId} has been delivered.',
+  },
+  COMPLETED: {
+    subject: 'Your Order Has Been Completed',
+    message: 'Your order #{orderId} has been completed.',
   },
   CANCELLED: null,
   REFUNDED: null,
@@ -233,6 +240,7 @@ async function sendEventNotification(
     PROCESSING: 'ORDER_STATUS_UPDATED',
     SHIPPED: 'ORDER_STATUS_UPDATED',
     DELIVERED: 'ORDER_STATUS_UPDATED',
+    COMPLETED: 'ORDER_STATUS_UPDATED',
     CANCELLED: 'ORDER_STATUS_UPDATED',
     REFUNDED: 'ORDER_STATUS_UPDATED',
     STOCK_RESERVED: 'ORDER_STATUS_UPDATED',

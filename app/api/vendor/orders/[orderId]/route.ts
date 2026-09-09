@@ -308,6 +308,21 @@ export async function PATCH(
           { status: 400 }
         )
       }
+      const validStatusTransitions: Record<string, string[]> = {
+        PENDING: ['PROCESSING'],
+        PROCESSING: ['SHIPPED'],
+        SHIPPED: ['DELIVERED'],
+        DELIVERED: ['COMPLETED'],
+      }
+      const allowedNextStatuses = validStatusTransitions[existingOrder.status]
+      if (!allowedNextStatuses || !allowedNextStatuses.includes(status)) {
+        return NextResponse.json(
+          {
+            error: `Cannot move from ${existingOrder.status} to ${status} — orders must progress through ${allowedNextStatuses?.join(' and ') || 'valid steps'} first.`,
+          },
+          { status: 400 }
+        )
+      }
       updateData.status = status
     }
 
@@ -373,7 +388,7 @@ export async function PATCH(
       PROCESSING: 'PROCESSING',
       SHIPPED: 'SHIPPED',
       DELIVERED: 'DELIVERED',
-      COMPLETED: 'DELIVERED',
+      COMPLETED: 'COMPLETED',
     }
 
     const eventType = fulfillmentStatus ? eventMapForFulfillment[fulfillmentStatus] : eventMapForStatus[status]
