@@ -72,6 +72,11 @@ export async function GET(
                 lastName: true,
               },
             },
+            store: {
+              select: {
+                name: true,
+              },
+            },
           },
         },
       },

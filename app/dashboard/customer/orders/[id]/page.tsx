@@ -90,6 +90,9 @@ interface OrderMessage {
       firstName: string | null
       lastName: string | null
     } | null
+    store?: {
+      name: string
+    } | null
   }
 }
 
@@ -307,9 +310,12 @@ export default function CustomerOrderDetailPage() {
         ) : (
           <div className="space-y-3 max-h-60 overflow-y-auto">
             {messages.map((msg) => {
-              const userName = msg.user.profile?.firstName 
-                ? `${msg.user.profile.firstName} ${msg.user.profile.lastName || ''}`.trim()
-                : msg.user.email.split('@')[0]
+              const isVendor = msg.userRole === 'VENDOR'
+              const userName = isVendor
+                ? (msg.user.store?.name || 'Vendor')
+                : (msg.user.profile?.firstName 
+                  ? `${msg.user.profile.firstName} ${msg.user.profile.lastName || ''}`.trim()
+                  : msg.user.email.split('@')[0])
               const isCustomer = msg.userRole === 'CUSTOMER'
               
               return (
