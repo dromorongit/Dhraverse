@@ -135,6 +135,13 @@ export default function ServiceDetail({ serviceId, vendorServices = [] }: Servic
     fetchService()
     fetchRelatedServices()
     checkWishlist()
+    if (serviceId) {
+      fetch('/api/recently-viewed', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ entityType: 'SERVICE', entityId: serviceId }),
+      }).catch(() => {})
+    }
   }, [serviceId])
 
   const fetchService = async () => {

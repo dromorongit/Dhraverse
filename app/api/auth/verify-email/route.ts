@@ -7,6 +7,7 @@ import { ensureFreeSubscription } from '@/lib/subscription/subscription-service'
 import { rateLimit } from '@/lib/rate-limit'
 import { isEmailServiceEnabled } from '@/lib/feature-flags'
 import { randomBytes } from 'crypto'
+import { processReferralSignup } from '@/lib/loyalty/process-referral-signup'
 
 export async function POST(request: NextRequest) {
   const rateLimitCheck = rateLimit('email-verification')(request)
@@ -68,6 +69,10 @@ export async function POST(request: NextRequest) {
 
     try {
       const user = await getPrisma().$transaction(async (tx) => {
+        const generatedReferralCode = pendingReg.role === 'CUSTOMER'
+          ? `REF-${randomBytes(4).toString('hex').toUpperCase()}`
+          : null
+
         const createdUser = await tx.user.create({
           data: {
             email: pendingReg.email,
@@ -76,6 +81,8 @@ export async function POST(request: NextRequest) {
             position: pendingReg.role === 'ADMIN' ? pendingReg.position : null,
             isEmailVerified: true,
             emailVerifiedAt: new Date(),
+            referralCode: generatedReferralCode,
+            registrationIpAddress: pendingReg.registrationIpAddress,
           },
           select: {
             id: true,
@@ -110,6 +117,17 @@ export async function POST(request: NextRequest) {
       await getPrisma().pendingRegistration.delete({
         where: { id: pendingReg.id },
       })
+
+      try {
+        await processReferralSignup({
+          referralCode: pendingReg.referralCode,
+          userId: user.id,
+          registrationIpAddress: pendingReg.registrationIpAddress,
+          role: pendingReg.role,
+        })
+      } catch (referralErr) {
+        console.error('Referral processing failed:', referralErr)
+      }
 
       const sessionId = randomBytes(32).toString('hex')
 

@@ -64,6 +64,8 @@ export async function completeReferral(input: CompleteReferralInput): Promise<an
         refereeId,
         status: ReferralStatus.COMPLETED,
         completedAt: new Date(),
+        rewardPoints: 20,
+        rewardCashback: 0.5,
       },
       include: { referrer: true },
     })
@@ -76,6 +78,65 @@ export async function completeReferral(input: CompleteReferralInput): Promise<an
           successfulReferrals: { increment: 1 },
         },
       })
+
+      const referee = await tx.user.findUnique({
+        where: { id: refereeId },
+        select: { role: true },
+      })
+
+      if (referee?.role === 'CUSTOMER') {
+        await tx.rewardPoints.upsert({
+          where: { userId: referral.referrerId },
+          update: {
+            balance: { increment: 20 },
+            totalEarned: { increment: 20 },
+            updatedAt: new Date(),
+          },
+          create: {
+            userId: referral.referrerId,
+            balance: 20,
+            totalEarned: 20,
+          },
+        })
+
+        await tx.rewardTransaction.create({
+          data: {
+            userId: referral.referrerId,
+            type: 'EARN' as any,
+            category: 'REFERRAL' as any,
+            amount: 20,
+            balanceAfter: 0,
+            description: `Referral reward for code ${referralCode}`,
+            referenceId: referral.id,
+            referenceType: 'REFERRAL',
+          },
+        })
+
+        await tx.cashbackBalance.upsert({
+          where: { userId: referral.referrerId },
+          update: {
+            balance: { increment: 0.5 },
+            totalEarned: { increment: 0.5 },
+            updatedAt: new Date(),
+          },
+          create: {
+            userId: referral.referrerId,
+            balance: 0.5,
+            totalEarned: 0.5,
+          },
+        })
+
+        await tx.cashbackTransaction.create({
+          data: {
+            userId: referral.referrerId,
+            amount: 0.5,
+            source: 'REFERRAL_BONUS' as any,
+            description: `Referral cashback reward for code ${referralCode}`,
+            referenceId: referral.id,
+            referenceType: 'REFERRAL',
+          },
+        })
+      }
     }
 
     return referral

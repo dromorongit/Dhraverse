@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { getPrisma } from '@/lib/prisma'
 import { verifyToken } from '@/lib/auth-middleware'
+import { LoyaltyEngine } from '@/lib/loyalty/loyalty-engine'
 
 export async function POST(request: NextRequest) {
   try {
@@ -38,6 +39,14 @@ export async function POST(request: NextRequest) {
         isPublic: isPublic ?? false,
       },
     })
+
+    if (payload.role === 'CUSTOMER') {
+      try {
+        await LoyaltyEngine.processCollectionCreateReward(payload.userId)
+      } catch (loyaltyErr) {
+        console.error('Auto collection reward failed:', loyaltyErr)
+      }
+    }
 
     return NextResponse.json({ collection }, { status: 201 })
   } catch (error) {

@@ -23,6 +23,7 @@ interface LoyaltyDashboardData {
     maxProgress: number
   }>
   referralStats: { userId: string; totalReferrals: number; successfulReferrals: number; pendingReferrals: number; totalRewardPoints: number; totalRewardCashback: number }
+  referralCode?: string | null
   recentTransactions: Array<{
     id: string
     type: string
@@ -32,6 +33,12 @@ interface LoyaltyDashboardData {
     description: string | null
     createdAt: string
   }>
+  guards: {
+    lastDailyLoginRewardAt: string | null
+    profileCompletionRewarded: boolean
+    followVendorRewardClaimed: boolean
+    lastWishlistRewardAt: string | null
+  } | null
 }
 
 export default function LoyaltyDashboardPage() {
@@ -154,7 +161,7 @@ export default function LoyaltyDashboardPage() {
                 pendingReferrals={data.referralStats.pendingReferrals}
                 totalRewardPoints={data.referralStats.totalRewardPoints}
                 totalRewardCashback={data.referralStats.totalRewardCashback}
-                referralCode="REF-YOUR-CODE"
+                referralCode={data.referralCode || 'REF-YOUR-CODE'}
               />
 
               <Card>
@@ -162,47 +169,37 @@ export default function LoyaltyDashboardPage() {
                   <h3 className="font-semibold text-deep-navy">Quick Actions</h3>
                 </CardHeader>
                 <CardContent>
-                  <div className="space-y-2">
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      onClick={() => handleEarnPoints('login')}
-                      className="w-full justify-start"
-                    >
-                      Daily Login (+2 pts)
-                    </Button>
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      onClick={() => handleEarnPoints('profile')}
-                      className="w-full justify-start"
-                    >
-                      Complete Profile (+20 pts)
-                    </Button>
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      onClick={() => handleEarnPoints('follow')}
-                      className="w-full justify-start"
-                    >
-                      Follow Vendor (+5 pts)
-                    </Button>
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      onClick={() => handleEarnPoints('wishlist')}
-                      className="w-full justify-start"
-                    >
-                      Wishlist Activity (+3 pts)
-                    </Button>
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      onClick={() => handleEarnPoints('collection')}
-                      className="w-full justify-start"
-                    >
-                      Create Collection (+10 pts)
-                    </Button>
+                  <div className="space-y-2 text-sm">
+                    <div className="flex items-center justify-between p-2 rounded-lg bg-gray-50">
+                      <span>Daily Login (+2 pts)</span>
+                      <span className={data.guards?.lastDailyLoginRewardAt ? 'text-green-600' : 'text-gray-500'}>
+                        {data.guards?.lastDailyLoginRewardAt ? 'Claimed today ✓' : 'Come back tomorrow for +2'}
+                      </span>
+                    </div>
+                    <div className="flex items-center justify-between p-2 rounded-lg bg-gray-50">
+                      <span>Complete Profile (+20 pts)</span>
+                      <span className={data.guards?.profileCompletionRewarded ? 'text-green-600' : 'text-gray-500'}>
+                        {data.guards?.profileCompletionRewarded ? 'Completed ✓ +20 earned' : 'Complete profile to earn +20'}
+                      </span>
+                    </div>
+                    <div className="flex items-center justify-between p-2 rounded-lg bg-gray-50">
+                      <span>Follow Vendor (+5 pts)</span>
+                      <span className="text-gray-500">
+                        {data.guards?.followVendorRewardClaimed ? 'Reward claimed ✓' : 'Follow 5 vendors to earn +5'}
+                      </span>
+                    </div>
+                    <div className="flex items-center justify-between p-2 rounded-lg bg-gray-50">
+                      <span>Wishlist Activity (+1 pt)</span>
+                      <span className={data.guards?.lastWishlistRewardAt ? 'text-green-600' : 'text-gray-500'}>
+                        {data.guards?.lastWishlistRewardAt ? 'Today\'s activity rewarded ✓' : 'Add an item to wishlist to earn +1'}
+                      </span>
+                    </div>
+                    <div className="flex items-center justify-between p-2 rounded-lg bg-gray-50">
+                      <span>Create Collection (+10 pts)</span>
+                      <span className="text-green-600">
+                        Auto-awarded on creation
+                      </span>
+                    </div>
                   </div>
                 </CardContent>
               </Card>
@@ -234,14 +231,14 @@ export default function LoyaltyDashboardPage() {
         {activeTab === 'referrals' && (
           <div className="space-y-6">
             <h2 className="text-xl font-bold text-deep-navy">Referral Program</h2>
-            <ReferralStatsCard
-              totalReferrals={data.referralStats.totalReferrals}
-              successfulReferrals={data.referralStats.successfulReferrals}
-              pendingReferrals={data.referralStats.pendingReferrals}
-              totalRewardPoints={data.referralStats.totalRewardPoints}
-              totalRewardCashback={data.referralStats.totalRewardCashback}
-              referralCode="REF-YOUR-CODE"
-            />
+              <ReferralStatsCard
+                totalReferrals={data.referralStats.totalReferrals}
+                successfulReferrals={data.referralStats.successfulReferrals}
+                pendingReferrals={data.referralStats.pendingReferrals}
+                totalRewardPoints={data.referralStats.totalRewardPoints}
+                totalRewardCashback={data.referralStats.totalRewardCashback}
+                referralCode={data.referralCode || 'REF-YOUR-CODE'}
+              />
             <Card>
               <CardHeader>
                 <h3 className="font-semibold text-deep-navy">How It Works</h3>

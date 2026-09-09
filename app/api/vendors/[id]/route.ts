@@ -155,13 +155,14 @@ export async function GET(request: NextRequest, { params }: { params: { id: stri
       : 0
 
     const totalReviews = allReviews.length
+    const followerCount = await getPrisma().vendorFollow.count({ where: { vendorId: actualStoreId } })
 
     // Check if featured status is still valid
-    const isCurrentlyFeatured = store.isFeatured && 
-      store.featuredUntil && 
+    const isCurrentlyFeatured = store.isFeatured &&
+      store.featuredUntil &&
       new Date(store.featuredUntil) > new Date()
 
- const vendorData = {
+  const vendorData = {
       slug: store.slug,
       id: store.id,
       name: store.name,
@@ -173,6 +174,7 @@ export async function GET(request: NextRequest, { params }: { params: { id: stri
       banner: store.banner,
       rating: Math.round(averageRating * 10) / 10,
       totalReviews,
+      followerCount,
       createdAt: store.createdAt,
       category: store.vendor_categories,
       mainPhoneNumber: store.mainPhoneNumber,

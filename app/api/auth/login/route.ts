@@ -6,6 +6,7 @@ import { rateLimit } from '@/lib/rate-limit'
 import { isVendorOnboarded } from '@/lib/onboarding'
 import { isEmailServiceEnabled } from '@/lib/feature-flags'
 import { parseUserAgent } from '@/lib/device-detector'
+import { LoyaltyEngine } from '@/lib/loyalty/loyalty-engine'
 
 export async function POST(request: NextRequest) {
   const rateLimitCheck = rateLimit('login')(request)
@@ -78,6 +79,31 @@ export async function POST(request: NextRequest) {
     console.log('Setting token cookie')
     console.log('NODE_ENV:', process.env.NODE_ENV)
     console.log('Cookie secure flag:', process.env.NODE_ENV === 'production')
+
+    // Auto-claim daily login reward if eligible (guarded by calendar date)
+    if (user.role === 'CUSTOMER') {
+      try {
+        const loyalty = await getPrisma().customerLoyalty.findUnique({
+          where: { userId: user.id },
+          select: { lastDailyLoginRewardAt: true },
+        })
+        const today = new Date()
+        const todayStr = today.toISOString().slice(0, 10)
+        const lastRewardDate = loyalty?.lastDailyLoginRewardAt
+          ? new Date(loyalty.lastDailyLoginRewardAt).toISOString().slice(0, 10)
+          : null
+
+        if (lastRewardDate !== todayStr) {
+          await LoyaltyEngine.processDailyLoginReward(user.id)
+          await getPrisma().customerLoyalty.update({
+            where: { userId: user.id },
+            data: { lastDailyLoginRewardAt: new Date() },
+          })
+        }
+      } catch (loyaltyErr) {
+        console.error('Auto daily login reward failed:', loyaltyErr)
+      }
+    }
 
     // Check vendor onboarding status
     let isOnboarded: boolean | undefined = undefined

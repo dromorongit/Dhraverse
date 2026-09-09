@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { getPrisma } from '@/lib/prisma'
 import { verifyToken } from '@/lib/auth-middleware'
+import { LoyaltyEngine } from '@/lib/loyalty/loyalty-engine'
 
 export async function GET(request: NextRequest) {
   try {
@@ -177,6 +178,28 @@ export async function POST(request: NextRequest) {
     } catch (e) {
       console.error('[wishlist/POST] wishlistItem.create FAILED:', e)
       return NextResponse.json({ error: 'Could not add to wishlist' }, { status: 500 })
+    }
+
+    if (payload.role === 'CUSTOMER') {
+      try {
+        const loyalty = await getPrisma().customerLoyalty.findUnique({
+          where: { userId: payload.userId },
+          select: { lastWishlistRewardAt: true },
+        })
+        const today = new Date().toISOString().slice(0, 10)
+        const lastRewardDate = loyalty?.lastWishlistRewardAt
+          ? new Date(loyalty.lastWishlistRewardAt).toISOString().slice(0, 10)
+          : null
+        if (lastRewardDate !== today) {
+          await LoyaltyEngine.processWishlistActivityReward(payload.userId)
+          await getPrisma().customerLoyalty.update({
+            where: { userId: payload.userId },
+            data: { lastWishlistRewardAt: new Date() },
+          })
+        }
+      } catch (loyaltyErr) {
+        console.error('Auto wishlist reward failed:', loyaltyErr)
+      }
     }
 
     let updatedWishlist: { id: string; items: any[] } | null = null

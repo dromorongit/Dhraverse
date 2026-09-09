@@ -4,6 +4,7 @@ import { verifyToken } from '@/lib/auth-middleware'
 import { sanitizeUserContent } from '@/lib/sanitize'
 import { sanitizePhoneNumber } from '@/lib/phone'
 import { createAuditLog, captureBeforeAfter } from '@/lib/audit-log'
+import { LoyaltyEngine } from '@/lib/loyalty/loyalty-engine'
 
 export const dynamic = 'force-dynamic'
 
@@ -200,6 +201,31 @@ export async function PUT(request: NextRequest) {
       beforeData,
       afterData,
     }).catch((err) => console.error('Failed to create audit log:', err))
+
+    if (payload.role === 'CUSTOMER') {
+      try {
+        const loyalty = await getPrisma().customerLoyalty.findUnique({
+          where: { userId: payload.userId },
+          select: { profileCompletionRewarded: true },
+        })
+        if (!loyalty?.profileCompletionRewarded) {
+          const updatedProfile = await getPrisma().profile.findUnique({
+            where: { userId: payload.userId },
+            select: { firstName: true, lastName: true, phone: true, address: true },
+          })
+          const isComplete = !!(updatedProfile?.firstName && updatedProfile?.lastName && updatedProfile?.phone && updatedProfile?.address)
+          if (isComplete) {
+            await LoyaltyEngine.processProfileCompleteReward(payload.userId)
+            await getPrisma().customerLoyalty.update({
+              where: { userId: payload.userId },
+              data: { profileCompletionRewarded: true },
+            })
+          }
+        }
+      } catch (loyaltyErr) {
+        console.error('Auto profile complete reward failed:', loyaltyErr)
+      }
+    }
 
     return NextResponse.json({ profile, message: 'Profile updated successfully' })
   } catch (error) {

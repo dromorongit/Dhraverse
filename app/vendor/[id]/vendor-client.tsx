@@ -93,6 +93,7 @@ interface VendorData {
     category: { id: string; name: string; slug: string } | null
   }>
   productCount: number
+  followerCount: number
 }
 
 interface User {
@@ -539,7 +540,7 @@ export default function VendorProfilePage() {
                     Chat on WhatsApp{getWhatsAppLinks(vendor.whatsappNumber).length > 1 ? ` ${index + 1}` : ''}
                   </a>
                 ))}
-                <VendorFollowButton vendorId={vendor.id} />
+                <VendorFollowButton vendorId={vendor.id} initialFollowerCount={vendor.followerCount} />
                 <Link href={`/marketplace?vendorCategory=${vendor.category?.id || ''}`}>
                   <Button variant="outline" size="lg">
                     View All Products

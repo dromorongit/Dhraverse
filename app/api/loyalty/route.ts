@@ -15,13 +15,26 @@ export async function GET(request: NextRequest) {
       return NextResponse.json({ error: 'Forbidden' }, { status: 403 })
     }
 
-    const [pointsBalance, cashbackBalance, tier, achievements, referralStats, recentTransactions] = await Promise.all([
+    const [pointsBalance, cashbackBalance, tier, achievements, referralStats, recentTransactions, loyaltyRecord, userRecord] = await Promise.all([
       LoyaltyEngine.reward.getPointsBalance(payload.userId),
       LoyaltyEngine.cashback.getCashbackBalance(payload.userId),
       LoyaltyEngine.tier.getCurrentTier(payload.userId),
       LoyaltyEngine.achievement.getUserAchievements(payload.userId),
       LoyaltyEngine.referral.getReferralStats(payload.userId),
       LoyaltyEngine.reward.getPointsHistory(payload.userId, 1, 10),
+      getPrisma().customerLoyalty.findUnique({
+        where: { userId: payload.userId },
+        select: {
+          lastDailyLoginRewardAt: true,
+          profileCompletionRewarded: true,
+          followVendorRewardClaimed: true,
+          lastWishlistRewardAt: true,
+        },
+      }),
+      getPrisma().user.findUnique({
+        where: { id: payload.userId },
+        select: { referralCode: true },
+      }),
     ])
 
     return NextResponse.json({
@@ -30,7 +43,14 @@ export async function GET(request: NextRequest) {
       tier,
       achievements,
       referralStats,
+      referralCode: userRecord?.referralCode || null,
       recentTransactions: recentTransactions.transactions,
+      guards: loyaltyRecord ? {
+        lastDailyLoginRewardAt: loyaltyRecord.lastDailyLoginRewardAt,
+        profileCompletionRewarded: loyaltyRecord.profileCompletionRewarded,
+        followVendorRewardClaimed: loyaltyRecord.followVendorRewardClaimed,
+        lastWishlistRewardAt: loyaltyRecord.lastWishlistRewardAt,
+      } : null,
     })
   } catch (error) {
     console.error('Error fetching loyalty dashboard:', error)

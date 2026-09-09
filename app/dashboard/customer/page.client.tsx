@@ -107,7 +107,7 @@ export default function CustomerDashboardPage() {
                   <Link href="/dashboard/customer/orders" className="block text-royal-blue hover:underline">My Orders</Link>
                   <Link href="/dashboard/customer/wishlist" className="block text-royal-blue hover:underline">Wishlist</Link>
                   <Link href="/dashboard/customer/collections" className="block text-royal-blue hover:underline">Collections</Link>
-                  <Link href="/dashboard/customer/saved-searches" className="block text-royal-blue hover:underline">Saved Searches</Link>
+                  <button onClick={() => setActiveTab('saved-searches')} className="block text-royal-blue hover:underline text-left">Saved Searches</button>
                 </div>
               </CardContent>
             </Card>

@@ -20,6 +20,8 @@ model User {
   emailVerifiedAt          DateTime?
   isEmailVerified          Boolean                        @default(false)
   behavioralTrackingConsent Boolean                      @default(true)
+  referralCode             String?                        @unique
+  registrationIpAddress    String?
   auditLogs                AuditLog[]
   authTokens               AuthToken[]
   cart                     Cart?
@@ -81,16 +83,18 @@ model User {
 }
 
 model PendingRegistration {
-  id            String   @id @default(cuid())
-  email         String   @unique
-  hashedOTP     String
-  otpExpiresAt  DateTime
-  phone         String?
-  role          Role
-  position      String?
-  name          String?
-  hashedPassword String
-  createdAt     DateTime @default(now())
+  id                  String    @id @default(cuid())
+  email               String    @unique
+  hashedOTP           String
+  otpExpiresAt        DateTime
+  phone               String?
+  role                Role
+  position            String?
+  name                String?
+  hashedPassword      String
+  referralCode        String?
+  registrationIpAddress String?
+  createdAt           DateTime  @default(now())
 
   @@index([email])
   @@index([otpExpiresAt])
@@ -2226,6 +2230,10 @@ model CustomerLoyalty {
   streakDays Int @default(0)
   lastActivityAt DateTime?
   tierUpdatedAt DateTime?
+  lastDailyLoginRewardAt DateTime?
+  profileCompletionRewarded Boolean @default(false)
+  followVendorRewardClaimed Boolean @default(false)
+  lastWishlistRewardAt DateTime?
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
   user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
@@ -2283,6 +2291,8 @@ model ReferralRecord {
   rewardCashback Float @default(0)
   referredAt DateTime?
   completedAt DateTime?
+  flagged   Boolean  @default(false)
+  flagReason String?
   metadata  Json?
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -2394,6 +2404,7 @@ enum ReferralStatus {
   PENDING
   COMPLETED
   REWARD_CLAIMED
+  FLAGGED
   EXPIRED
   CANCELLED
 }

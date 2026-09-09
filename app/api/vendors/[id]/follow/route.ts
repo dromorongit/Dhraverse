@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { getPrisma } from '@/lib/prisma'
 import { verifyToken } from '@/lib/auth-middleware'
+import { LoyaltyEngine } from '@/lib/loyalty/loyalty-engine'
 
 export async function POST(request: NextRequest, { params }: { params: { id: string } }) {
   try {
@@ -46,6 +47,23 @@ export async function POST(request: NextRequest, { params }: { params: { id: str
         message: 'A user started following your store',
       },
     })
+
+    try {
+      const totalFollows = await getPrisma().vendorFollow.count({ where: { userId: payload.userId } })
+      const loyalty = await getPrisma().customerLoyalty.findUnique({
+        where: { userId: payload.userId },
+        select: { followVendorRewardClaimed: true },
+      })
+      if (totalFollows >= 5 && !loyalty?.followVendorRewardClaimed) {
+        await LoyaltyEngine.processFollowVendorReward(payload.userId)
+        await getPrisma().customerLoyalty.update({
+          where: { userId: payload.userId },
+          data: { followVendorRewardClaimed: true },
+        })
+      }
+    } catch (loyaltyErr) {
+      console.error('Auto follow vendor reward failed:', loyaltyErr)
+    }
 
     return NextResponse.json({ followed: true })
   } catch (error) {

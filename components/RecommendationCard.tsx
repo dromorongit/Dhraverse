@@ -9,6 +9,7 @@ import { Button } from './Button'
 import { Badge } from './Badge'
 import { getBlurDataURL, CARD_IMAGE_SIZES } from '@/lib/image-utils'
 import { ProductStockIndicator } from '@/components/ProductStockIndicator'
+import { formatPrice } from '@/lib/currency'
 
 interface RecommendationCardProps {
   item: {
@@ -56,7 +57,7 @@ export function RecommendationCard({ item }: RecommendationCardProps) {
           <p className="text-xs text-slate-500 mb-2">{item.store.name}</p>
         )}
         <div className="mt-auto">
-          <span className="text-lg font-bold text-royal-blue">${price.toFixed(2)}</span>
+          <span className="text-lg font-bold text-royal-blue">{formatPrice(price)}</span>
           <p className="text-xs text-gray-400 mt-1">{item.reason}</p>
         </div>
         {isProduct && (

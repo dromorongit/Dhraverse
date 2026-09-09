@@ -137,6 +137,48 @@ export async function GET(request: NextRequest) {
         if (service) {
           item.service = service
         }
+      } else if (item.entityType === 'VENDOR') {
+        const store = await getPrisma().store.findUnique({
+          where: { id: item.entityId },
+          include: {
+            user: {
+              select: {
+                profile: {
+                  select: {
+                    firstName: true,
+                    lastName: true,
+                    avatar: true,
+                  },
+                },
+              },
+            },
+            vendor_categories: {
+              select: {
+                id: true,
+                name: true,
+                slug: true,
+              },
+            },
+            _count: {
+              select: { products: true },
+            },
+          },
+        })
+        if (store) {
+          item.vendor = {
+            id: store.id,
+            name: store.name,
+            slug: store.slug,
+            logo: store.logo,
+            banner: store.banner,
+            rating: store.averageRating,
+            isVerified: store.isVerified,
+            badgeTier: store.badgeTier,
+            productCount: store._count.products,
+            profile: store.user?.profile,
+            category: store.vendor_categories,
+          }
+        }
       }
     }
 

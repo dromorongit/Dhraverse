@@ -8,6 +8,8 @@ import { isEmailServiceEnabled } from '@/lib/feature-flags'
 import { isVendorOnboarded } from '@/lib/onboarding'
 import { ensureFreeSubscription } from '@/lib/subscription/subscription-service'
 import { randomBytes } from 'crypto'
+import { completeReferral } from '@/lib/loyalty/referral-engine'
+import { processReferralSignup } from '@/lib/loyalty/process-referral-signup'
 
 export async function POST(request: NextRequest) {
   const rateLimitCheck = rateLimit('register')(request)
@@ -16,7 +18,7 @@ export async function POST(request: NextRequest) {
   }
 
   try {
-    const { email, password, role, mobileNumber, name, ageConsent } = await request.json()
+    const { email, password, role, mobileNumber, name, ageConsent, referralCode } = await request.json()
 
     if (!email || !password || !role) {
       return NextResponse.json({ error: 'Email, password, and role are required' }, { status: 400 })
@@ -75,6 +77,7 @@ export async function POST(request: NextRequest) {
 
     const hashedPassword = await hashPassword(password)
     const emailServiceEnabled = isEmailServiceEnabled()
+    const registrationIpAddress = request.headers.get('x-forwarded-for')?.split(',')[0] || request.headers.get('x-real-ip') || null
 
     if (emailServiceEnabled) {
       const otp = generateOTP()
@@ -90,6 +93,8 @@ export async function POST(request: NextRequest) {
           role,
           name: role === 'CUSTOMER' ? name?.trim() : null,
           hashedPassword,
+          referralCode: typeof referralCode === 'string' ? referralCode.trim() : null,
+          registrationIpAddress,
         },
         create: {
           email: normalizedEmail,
@@ -99,6 +104,8 @@ export async function POST(request: NextRequest) {
           role,
           name: role === 'CUSTOMER' ? name?.trim() : null,
           hashedPassword,
+          referralCode: typeof referralCode === 'string' ? referralCode.trim() : null,
+          registrationIpAddress,
         },
       })
 
@@ -117,6 +124,10 @@ export async function POST(request: NextRequest) {
 
     try {
       const user = await getPrisma().$transaction(async (tx) => {
+        const generatedReferralCode = role === 'CUSTOMER'
+          ? `REF-${randomBytes(4).toString('hex').toUpperCase()}`
+          : null
+
         const createdUser = await tx.user.create({
           data: {
             email: normalizedEmail,
@@ -124,6 +135,8 @@ export async function POST(request: NextRequest) {
             role,
             isEmailVerified: true,
             emailVerifiedAt: new Date(),
+            referralCode: generatedReferralCode,
+            registrationIpAddress: registrationIpAddress,
           },
           select: {
             id: true,
@@ -153,6 +166,13 @@ export async function POST(request: NextRequest) {
           email: createdUser.email,
           role: createdUser.role,
         }
+      })
+
+      await processReferralSignup({
+        referralCode,
+        userId: user.id,
+        registrationIpAddress,
+        role,
       })
 
       const sessionId = randomBytes(32).toString('hex')
@@ -195,6 +215,9 @@ export async function POST(request: NextRequest) {
         }
         if (error.meta?.target?.includes('slug')) {
           return NextResponse.json({ error: 'Store slug conflict. Please try again.' }, { status: 409 })
+        }
+        if (error.meta?.target?.includes('referralCode')) {
+          return NextResponse.json({ error: 'Referral code generation conflict. Please try again.' }, { status: 409 })
         }
       }
       console.error('Registration error:', error)
