@@ -113,6 +113,12 @@ export default function VendorOrdersPageClient() {
     fetchOrders()
   }
 
+  const normalizeSearch = (value: string) => value.trim().replace(/^#+/, '')
+
+  const handleSearchChange = (e: ChangeEvent<HTMLInputElement>) => {
+    setSearch(normalizeSearch(e.target.value))
+  }
+
   const getCustomerName = (order: Order) => {
     if (order.user.profile?.firstName || order.user.profile?.lastName) {
       return [order.user.profile?.firstName, order.user.profile?.lastName].filter(Boolean).join(' ')
@@ -189,7 +195,7 @@ export default function VendorOrdersPageClient() {
                     type="text"
                     placeholder="Search by order ID or customer email..."
                     value={search}
-                    onChange={(e) => setSearch(e.target.value)}
+                    onChange={handleSearchChange}
                     className="w-full"
                   />
                   <button
