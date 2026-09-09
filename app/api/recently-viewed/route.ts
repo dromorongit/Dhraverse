@@ -24,6 +24,15 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'Invalid entity type' }, { status: 400 })
     }
 
+    const user = await getPrisma().user.findUnique({
+      where: { id: payload.userId },
+      select: { behavioralTrackingConsent: true },
+    })
+
+    if (!user?.behavioralTrackingConsent) {
+      return NextResponse.json({ success: true })
+    }
+
     await getPrisma().recentlyViewed.create({
       data: {
         userId: payload.userId,

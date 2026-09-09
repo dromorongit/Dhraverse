@@ -19,6 +19,7 @@ model User {
   resetPasswordExpires     DateTime?
   emailVerifiedAt          DateTime?
   isEmailVerified          Boolean                        @default(false)
+  behavioralTrackingConsent Boolean                      @default(true)
   auditLogs                AuditLog[]
   authTokens               AuthToken[]
   cart                     Cart?
@@ -843,6 +844,7 @@ model SuperAdminSettings {
   regionalDefaults            Json      @default("{}")
   brandingPreferences         Json      @default("{}")
   auditLogRetention           String    @default("forever")
+  auditLogRetentionDays       Int       @default(90)
   sessionTimeout              String    @default("8")
   allowedAdminIps             Json      @default("[]")
   monitoringPreferences       Json      @default("{}")

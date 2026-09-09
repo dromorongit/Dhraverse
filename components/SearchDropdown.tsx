@@ -129,8 +129,6 @@ const performSearch = useCallback(async (searchQuery: string) => {
       return
     }
 
-    event({ action: 'search', category: 'engagement', label: searchQuery })
-
     setLoading(true)
     try {
       const res = await fetch(`/api/search-upgraded?q=${encodeURIComponent(searchQuery)}`, {
@@ -152,6 +150,7 @@ const performSearch = useCallback(async (searchQuery: string) => {
         })
         setIsOpen(true)
         setActiveIndex(-1)
+        event({ action: 'search', category: 'engagement', label: data.total > 0 ? 'true' : 'false', value: data.total })
         const productIds = (data.results.products || []).map((p: SearchProduct) => p.id).join(',')
         if (productIds) {
           fetchWishlistStatus(productIds)

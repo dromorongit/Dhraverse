@@ -237,7 +237,7 @@ export default function PrivacyPolicyPage() {
                   </li>
                   <li className="flex items-start gap-3">
                     <span className="w-2 h-2 rounded-full bg-royal-blue mt-2 flex-shrink-0"></span>
-                    <span className="text-slate-600"><span className="font-medium">Analytics Cookies:</span> Help us understand how visitors interact with our website by collecting and reporting information anonymously.</span>
+                    <span className="text-slate-600"><span className="font-medium">Analytics Cookies:</span> Help us understand how visitors interact with our website. Search interactions are tracked in aggregate (without storing raw search queries) to improve our platform. Information is reported anonymously.</span>
                   </li>
                   <li className="flex items-start gap-3">
                     <span className="w-2 h-2 rounded-full bg-royal-blue mt-2 flex-shrink-0"></span>
@@ -246,6 +246,9 @@ export default function PrivacyPolicyPage() {
                 </ul>
                 <p className="text-slate-600">
                   You can control cookies through your browser settings. Disabling cookies may affect some features of our platform. When you first visit our site, you&apos;ll see a cookie consent banner where you can manage your preferences.
+                </p>
+                <p className="text-slate-600 mt-4">
+                  <span className="font-medium">Behavioral Tracking:</span> We track items you view to personalize recommendations. You can opt out of this tracking at any time in your account settings under Wishlist Preferences.
                 </p>
               </section>
 
@@ -258,6 +261,9 @@ export default function PrivacyPolicyPage() {
                   We retain your personal data only as long as necessary for the purposes outlined in 
                   this policy, or as required by law. Account data is retained while your account 
                   is active, and order information is retained for legal and tax purposes.
+                </p>
+                <p className="text-slate-600 mt-4">
+                  IP addresses and device information tied to account activity are retained for 90 days in our audit logs before being anonymized.
                 </p>
               </section>
 

@@ -48,6 +48,8 @@ export default function CustomerSections() {
     allowRecommendations: false,
   })
 
+  const [trackingConsent, setTrackingConsent] = useState(true)
+
   const fetchAddresses = async () => {
     setAddressLoading(true)
     try {
@@ -97,10 +99,23 @@ export default function CustomerSections() {
     }
   }
 
+  const fetchTrackingConsent = async () => {
+    try {
+      const res = await fetch('/api/settings/tracking-preferences')
+      if (res.ok) {
+        const data = await res.json()
+        setTrackingConsent(data.behavioralTrackingConsent ?? true)
+      }
+    } catch {
+      // silent
+    }
+  }
+
   useEffect(() => {
     fetchAddresses()
     fetchPaymentMethods()
     fetchWishlistPrefs()
+    fetchTrackingConsent()
   }, [])
 
   const handleSaveWishlist = async () => {
@@ -131,6 +146,29 @@ export default function CustomerSections() {
         setTimeout(() => setMessage(null), 3000)
       } else {
         setError('Failed to save wishlist preferences')
+      }
+    } catch {
+      setError('An error occurred')
+    } finally {
+      setSaving(false)
+    }
+  }
+
+  const handleSaveTrackingConsent = async () => {
+    setSaving(true)
+    setMessage(null)
+    setError(null)
+    try {
+      const res = await fetch('/api/settings/tracking-preferences', {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ behavioralTrackingConsent: trackingConsent }),
+      })
+      if (res.ok) {
+        setMessage('Tracking preferences saved')
+        setTimeout(() => setMessage(null), 3000)
+      } else {
+        setError('Failed to save tracking preferences')
       }
     } catch {
       setError('An error occurred')
@@ -420,8 +458,13 @@ export default function CustomerSections() {
           <Toggle label="Public wishlist" description="Allow others to view your wishlist" checked={wishlistPrefs.publicWishlist} onChange={() => setWishlistPrefs({ ...wishlistPrefs, publicWishlist: !wishlistPrefs.publicWishlist })} disabled={saving} />
           <Toggle label="Show on profile" description="Display your wishlist on your public profile" checked={wishlistPrefs.showOnProfile} onChange={() => setWishlistPrefs({ ...wishlistPrefs, showOnProfile: !wishlistPrefs.showOnProfile })} disabled={saving} />
 
-          <p className="text-xs font-medium text-slate-500 uppercase tracking-wider mt-4">Recommendations</p>
-          <Toggle label="Recommendations" description="Use wishlist data to suggest products" checked={wishlistPrefs.allowRecommendations} onChange={() => setWishlistPrefs({ ...wishlistPrefs, allowRecommendations: !wishlistPrefs.allowRecommendations })} disabled={saving} />
+           <p className="text-xs font-medium text-slate-500 uppercase tracking-wider mt-4">Recommendations</p>
+           <Toggle label="Recommendations" description="Use wishlist data to suggest products" checked={wishlistPrefs.allowRecommendations} onChange={() => setWishlistPrefs({ ...wishlistPrefs, allowRecommendations: !wishlistPrefs.allowRecommendations })} disabled={saving} />
+           <Toggle label="Allow Dhream Market to track items you view to personalize recommendations" description="Disable this to stop saving your browsing history for recommendations" checked={trackingConsent} onChange={() => setTrackingConsent(!trackingConsent)} disabled={saving} />
+           <div className="mt-2">
+             <Button size="sm" onClick={handleSaveTrackingConsent} disabled={saving}>{saving ? 'Saving...' : 'Save Tracking Preference'}</Button>
+           </div>
+
 
           <div className="mt-4">
             <Button onClick={handleSaveWishlist} disabled={saving} size="md">{saving ? 'Saving...' : 'Save Preferences'}</Button>
