@@ -126,6 +126,9 @@ export default function VendorOrderDetailPageClient() {
   const [vendorReply, setVendorReply] = useState('')
   const [respondingToRefund, setRespondingToRefund] = useState<string | null>(null)
   const [pendingStatusUpdate, setPendingStatusUpdate] = useState<string | null>(null)
+  const [generalReply, setGeneralReply] = useState('')
+  const [sendingGeneralReply, setSendingGeneralReply] = useState(false)
+  const [generalReplyError, setGeneralReplyError] = useState<string | null>(null)
 
   useEffect(() => {
     if (orderId) {
@@ -231,6 +234,38 @@ export default function VendorOrderDetailPageClient() {
     if (order.vendorAccepted) return 'ACCEPTED'
     if (order.vendorRejected) return 'REJECTED'
     return 'PENDING'
+  }
+
+  const handleSendGeneralReply = async () => {
+    if (!order || !generalReply.trim()) return
+
+    setSendingGeneralReply(true)
+    setGeneralReplyError(null)
+    try {
+      const response = await fetch(`/api/orders/${order.id}/messages`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          message: generalReply.trim(),
+          messageType: 'GENERAL',
+        }),
+      })
+
+      if (!response.ok) {
+        const errorData = await response.json()
+        setGeneralReplyError(errorData.error || 'Failed to send reply')
+        return
+      }
+
+      const data = await response.json()
+      setMessages(prev => [...prev, data.message])
+      setGeneralReply('')
+    } catch (err) {
+      console.error('Error sending general reply:', err)
+      setGeneralReplyError('Failed to send reply')
+    } finally {
+      setSendingGeneralReply(false)
+    }
   }
 
   const VENDOR_VALID_STATUSES = ['PROCESSING', 'SHIPPED', 'DELIVERED', 'COMPLETED']
@@ -480,6 +515,7 @@ export default function VendorOrderDetailPageClient() {
     }
 
     const refundRequests = messages.filter(msg => msg.messageType === 'REFUND_REQUEST')
+    const generalMessages = messages.filter(msg => msg.messageType === 'GENERAL')
 
     return (
       <div className="space-y-4">
@@ -515,7 +551,7 @@ export default function VendorOrderDetailPageClient() {
             )}
 
             <div className="max-h-48 overflow-y-auto space-y-2">
-              {messages.filter(msg => msg.messageType === 'GENERAL').map((msg) => {
+              {generalMessages.map((msg) => {
                 const userName = msg.user.profile?.firstName
                   ? `${msg.user.profile.firstName} ${msg.user.profile.lastName || ''}`.trim()
                   : msg.user.email.split('@')[0]
@@ -530,6 +566,31 @@ export default function VendorOrderDetailPageClient() {
             </div>
           </>
         )}
+
+        <div className="mt-4 pt-4 border-t">
+          <Textarea
+            value={generalReply}
+            onChange={(e) => {
+              setGeneralReply(e.target.value)
+              if (generalReplyError) setGeneralReplyError(null)
+            }}
+            placeholder="Type your reply to the customer..."
+            rows={3}
+            disabled={sendingGeneralReply}
+          />
+          {generalReplyError && (
+            <p className="text-xs text-red-600 mt-1">{generalReplyError}</p>
+          )}
+          <div className="flex justify-end mt-2">
+            <Button
+              size="sm"
+              onClick={handleSendGeneralReply}
+              disabled={sendingGeneralReply || !generalReply.trim()}
+            >
+              {sendingGeneralReply ? 'Sending...' : 'Send Reply'}
+            </Button>
+          </div>
+        </div>
       </div>
     )
   }
