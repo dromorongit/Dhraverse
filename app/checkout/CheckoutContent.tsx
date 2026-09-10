@@ -191,16 +191,21 @@ function MobileOrderSummary({
   )
 }
 
-function PaymentSummaryMobile({ total, processing, onCheckout }: {
+function PaymentSummaryMobile({ total, subtotal, processing, onCheckout, effectiveWalletAmount }: {
   total: number
+  subtotal: number
   processing: boolean
   onCheckout: () => void
+  effectiveWalletAmount: number
 }) {
   return (
     <div className="flex items-center justify-between gap-4">
       <div>
         <p className="text-xs text-slate-600">Total</p>
         <p className="text-lg font-bold text-navy">{formatPrice(total)}</p>
+        {effectiveWalletAmount > 0 && (
+          <p className="text-xs text-green-600">-{formatPrice(effectiveWalletAmount)} wallet</p>
+        )}
       </div>
       <Button
         onClick={onCheckout}
@@ -228,11 +233,16 @@ function PaymentSummaryMobile({ total, processing, onCheckout }: {
   )
 }
 
-function PaymentSummaryDesktop({ total, subtotal, processing, onCheckout }: {
+function PaymentSummaryDesktop({ total, subtotal, processing, onCheckout, walletBalance, useWalletBalance, effectiveWalletAmount, onToggleWallet, onWalletAmountChange }: {
   total: number
   subtotal: number
   processing: boolean
   onCheckout: () => void
+  walletBalance: number
+  useWalletBalance: boolean
+  effectiveWalletAmount: number
+  onToggleWallet: () => void
+  onWalletAmountChange: (value: number) => void
 }) {
   return (
     <Card variant="elevated" className="bg-white rounded-2xl shadow-sm">
@@ -245,14 +255,54 @@ function PaymentSummaryDesktop({ total, subtotal, processing, onCheckout }: {
             <span className="text-slate-600">Subtotal</span>
             <span className="text-slate-900">{formatPrice(subtotal)}</span>
           </div>
+          {useWalletBalance && effectiveWalletAmount > 0 && (
+            <div className="flex justify-between text-green-600">
+              <span>Wallet Discount</span>
+              <span>-{formatPrice(effectiveWalletAmount)}</span>
+            </div>
+          )}
           <div className="flex justify-between">
             <span className="text-slate-600">Delivery fee</span>
             <span className="text-slate-900">{formatPrice(0)}</span>
           </div>
-          <div className="flex justify-between border-t pt-3 mt-3">
-            <span className="text-lg font-bold text-navy">Total</span>
-            <span className="text-lg font-bold text-navy">{formatPrice(total)}</span>
+          <div className="border-t pt-3 mt-3">
+            <div className="flex justify-between">
+              <span className="text-lg font-bold text-navy">Total</span>
+              <span className="text-lg font-bold text-navy">{formatPrice(total)}</span>
+            </div>
           </div>
+          {walletBalance > 0 && (
+            <div className="pt-3 border-t">
+              <label className="flex items-center gap-3 cursor-pointer mb-2">
+                <input
+                  type="checkbox"
+                  checked={useWalletBalance}
+                  onChange={onToggleWallet}
+                  className="w-4 h-4 text-royal-blue rounded border-gray-300 focus:ring-royal-blue"
+                />
+                <span className="text-sm font-medium text-slate-700">
+                  Use Wallet Balance
+                  <span className="block text-xs text-gray-500">
+                    Available: {formatPrice(walletBalance)}
+                  </span>
+                </span>
+              </label>
+              {useWalletBalance && (
+                <div className="mt-2">
+                  <label className="block text-xs text-gray-600 mb-1">Wallet amount to apply</label>
+                  <input
+                    type="number"
+                    min={0}
+                    max={Math.min(walletBalance, subtotal)}
+                    step={0.01}
+                    value={effectiveWalletAmount}
+                    onChange={(e) => onWalletAmountChange(parseFloat(e.target.value) || 0)}
+                    className="block w-full rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm text-slate-900 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  />
+                </div>
+              )}
+            </div>
+          )}
         </div>
       </CardContent>
       <CardFooter>
@@ -298,216 +348,311 @@ export default function CheckoutContent() {
    const [orderSummaryExpanded, setOrderSummaryExpanded] = useState(false)
    const [verificationTimeout, setVerificationTimeout] = useState(false)
    const [processingScreenTimeout, setProcessingScreenTimeout] = useState(false)
+   const [walletBalance, setWalletBalance] = useState(0)
+   const [useWalletBalance, setUseWalletBalance] = useState(false)
+   const [walletAmount, setWalletAmount] = useState(0)
    
-   const { cart: contextCart } = useCart()
-  const paymentStatus = searchParams?.get('status') ?? null
-  
-  const [formData, setFormData] = useState({
-    firstName: '',
-    lastName: '',
-    email: '',
-    phone: '',
-    region: '',
-    city: '',
-    address: '',
-    notes: ''
-  })
-const [formErrors, setFormErrors] = useState<Record<string, string>>({})
-   const processedRefs = useRef<Set<string>>(new Set())
-   const idempotencyKey = useRef(crypto.randomUUID())
+    const { cart: contextCart } = useCart()
+   const paymentStatus = searchParams?.get('status') ?? null
+   
+   const [formData, setFormData] = useState({
+     firstName: '',
+     lastName: '',
+     email: '',
+     phone: '',
+     region: '',
+     city: '',
+     address: '',
+     notes: ''
+   })
+ const [formErrors, setFormErrors] = useState<Record<string, string>>({})
+    const processedRefs = useRef<Set<string>>(new Set())
+    const idempotencyKey = useRef(crypto.randomUUID())
+    const submittingRef = useRef(false)
 
-   useEffect(() => {
-     fetchProfile()
-   }, [])
+    useEffect(() => {
+      fetchProfile()
+      fetchWalletBalance()
+    }, [])
 
-  const fetchProfile = async () => {
-    try {
-      const response = await fetch('/api/auth/me')
-      if (response.ok) {
-        const data = await response.json()
-        const user = data.user
-        setProfile(user)
-        if (user) {
-          setFormData(prev => ({
-            ...prev,
-            firstName: user.profile?.firstName ?? '',
-            lastName: user.profile?.lastName ?? '',
-            email: user.email ?? '',
-            phone: user.profile?.phone ?? '',
-            address: user.profile?.address ?? ''
-          }))
+    const fetchWalletBalance = async () => {
+      try {
+        const response = await fetch('/api/loyalty')
+        if (response.ok) {
+          const data = await response.json()
+          setWalletBalance(data.walletBalance ?? 0)
         }
-      }
-    } catch (error) {
-      console.error('Error fetching profile:', error)
-    }
-  }
-
-  const handleInputChange = (field: string, value: string) => {
-    setFormData(prev => ({ ...prev, [field]: value }))
-    if (formErrors[field]) {
-      setFormErrors(prev => ({ ...prev, [field]: '' }))
-    }
-  }
-
-  const validateForm = () => {
-    const errors: Record<string, string> = {}
-    if (!formData.firstName.trim()) errors.firstName = 'First name is required'
-    if (!formData.lastName.trim()) errors.lastName = 'Last name is required'
-    if (!formData.email.trim()) {
-      errors.email = 'Email is required'
-    } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.email)) {
-      errors.email = 'Invalid email address'
-    }
-    if (!formData.phone.trim()) errors.phone = 'Phone number is required'
-    if (!formData.region.trim()) errors.region = 'Region is required'
-    if (!formData.city.trim()) errors.city = 'City is required'
-    if (!formData.address.trim()) errors.address = 'Delivery address is required'
-    setFormErrors(errors)
-    return Object.keys(errors).length === 0
-  }
-
-  const handleCheckout = async () => {
-    if (!contextCart || contextCart.items.length === 0) return
-
-    event({ action: 'begin_checkout', category: 'ecommerce', value: subtotal })
-
-    for (const item of contextCart.items) {
-      const isPreorderOrBackorder = item.product.availabilityType === 'PREORDER' ||
-                                    item.product.availabilityType === 'BACKORDER'
-      if (!isPreorderOrBackorder) {
-        const availableStock = item.productVariant?.stock ?? item.product.stock
-        if (availableStock < item.quantity) {
-          setError(`Insufficient stock for ${item.product.name}. Available: ${availableStock}`)
-          setProcessing(false)
-          return
-        }
+      } catch (err) {
+        console.error('Error fetching wallet balance:', err)
       }
     }
-    
-    if (!validateForm()) return
 
-    setProcessing(true)
-    setError(null)
+    const subtotal = contextCart?.total ?? 0
+    const effectiveWalletAmount = useWalletBalance ? Math.min(walletAmount || walletBalance, walletBalance, subtotal) : 0
+    const finalTotal = Math.max(0, subtotal - effectiveWalletAmount)
 
-    try {
-      const response = await fetch('/api/checkout', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ customerInfo: formData, idempotencyKey: idempotencyKey.current }),
-      })
+     const fetchProfile = async () => {
+      try {
+        const response = await fetch('/api/auth/me')
+        if (response.ok) {
+          const data = await response.json()
+          const user = data.user
+          setProfile(user)
+          if (user) {
+            setFormData(prev => ({
+              ...prev,
+              firstName: user.profile?.firstName ?? '',
+              lastName: user.profile?.lastName ?? '',
+              email: user.email ?? '',
+              phone: user.profile?.phone ?? '',
+              address: user.profile?.address ?? ''
+            }))
+          }
+        }
+      } catch (error) {
+        console.error('Error fetching profile:', error)
+      }
+    }
 
-      const data = await response.json()
+   const handleInputChange = (field: string, value: string) => {
+     setFormData(prev => ({ ...prev, [field]: value }))
+     if (formErrors[field]) {
+       setFormErrors(prev => ({ ...prev, [field]: '' }))
+     }
+   }
 
-      if (response.status === 401) {
-        const currentUrl = encodeURIComponent(`${window.location.pathname}${window.location.search || ''}`)
-        window.location.href = `/login?redirect=${currentUrl}`
+   const validateForm = () => {
+     const errors: Record<string, string> = {}
+     if (!formData.firstName.trim()) errors.firstName = 'First name is required'
+     if (!formData.lastName.trim()) errors.lastName = 'Last name is required'
+     if (!formData.email.trim()) {
+       errors.email = 'Email is required'
+     } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.email)) {
+       errors.email = 'Invalid email address'
+     }
+     if (!formData.phone.trim()) errors.phone = 'Phone number is required'
+     if (!formData.region.trim()) errors.region = 'Region is required'
+     if (!formData.city.trim()) errors.city = 'City is required'
+     if (!formData.address.trim()) errors.address = 'Delivery address is required'
+     setFormErrors(errors)
+     return Object.keys(errors).length === 0
+   }
+
+    const handleCheckout = async () => {
+      if (!contextCart || contextCart.items.length === 0) return
+      if (submittingRef.current) return
+
+      submittingRef.current = true
+
+      event({ action: 'begin_checkout', category: 'ecommerce', value: subtotal })
+
+      for (const item of contextCart.items) {
+        const isPreorderOrBackorder = item.product.availabilityType === 'PREORDER' ||
+                                      item.product.availabilityType === 'BACKORDER'
+        if (!isPreorderOrBackorder) {
+          const availableStock = item.productVariant?.stock ?? item.product.stock
+          if (availableStock < item.quantity) {
+            setError(`Insufficient stock for ${item.product.name}. Available: ${availableStock}`)
+            setProcessing(false)
+            submittingRef.current = false
+            return
+          }
+        }
+      }
+      
+      if (!validateForm()) {
+        submittingRef.current = false
         return
       }
 
-      if (response.ok && data.authorizationUrl) {
-        window.location.href = data.authorizationUrl
-      } else {
-        const errorMessage = data.error ?? data.message ?? 'Failed to initialize checkout'
-        setError(errorMessage)
-        setProcessing(false)
-      }
-    } catch {
-      setError('An error occurred during checkout. Please check your connection and try again.')
-      setProcessing(false)
-    }
-  }
+      setProcessing(true)
+      setError(null)
 
-  const verifyPayment = async (ref: string) => {
-    setProcessing(true)
-    setVerificationTimeout(false)
-    
-    const timeoutPromise = new Promise((_, reject) => {
-      setTimeout(() => reject(new Error('Verification timeout')), 10000)
-    })
-
-    try {
-      const response = await Promise.race([
-        fetch('/api/payment/verify', {
+      try {
+        const response = await fetch('/api/checkout', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ reference: ref }),
-        }),
-        timeoutPromise,
-      ]) as Response
+          body: JSON.stringify({ 
+            customerInfo: formData, 
+            idempotencyKey: idempotencyKey.current,
+            useWalletBalance: useWalletBalance,
+            walletAmount: useWalletBalance ? effectiveWalletAmount : undefined,
+          }),
+        })
 
-      if (!response.ok) {
-        setProcessing(false)
         const data = await response.json()
-        const redirectUrl = data.status === 'cancelled' || data.status === 'abandoned'
-          ? `/payment/cancelled?orderId=${data.orderId ?? ''}`
-          : '/payment/failed'
-        window.location.href = redirectUrl
-        return
-      }
 
-      const data = await response.json()
-      
-      if (data.success) {
-        dispatchCartUpdate()
-        window.location.href = `/payment/success?orderId=${data.orderId}`
-      } else if (data.status === 'cancelled' || data.status === 'abandoned' || data.status === 'failed') {
-        setProcessing(false)
-        if (data.status === 'cancelled' || data.status === 'abandoned') {
-          window.location.href = `/payment/cancelled?orderId=${data.orderId ?? ''}`
-        } else {
-          window.location.href = '/payment/failed'
+        if (response.status === 401) {
+          const currentUrl = encodeURIComponent(`${window.location.pathname}${window.location.search || ''}`)
+          window.location.href = `/login?redirect=${currentUrl}`
+          return
         }
-      } else {
+
+        if (response.ok && data.authorizationUrl) {
+          window.location.href = data.authorizationUrl
+        } else if (response.ok && data.fullyCoveredByWallet) {
+          dispatchCartUpdate()
+          window.location.href = `/payment/success?orderId=${data.orderId}&walletApplied=true`
+        } else {
+          const errorMessage = data.error ?? data.message ?? 'Failed to initialize checkout'
+          setError(errorMessage)
+          setProcessing(false)
+          submittingRef.current = false
+        }
+      } catch {
+        setError('An error occurred during checkout. Please check your connection and try again.')
         setProcessing(false)
-        window.location.href = '/payment/failed'
-      }
-    } catch (error) {
-      setProcessing(false)
-      if (error instanceof Error && error.message === 'Verification timeout') {
-        setVerificationTimeout(true)
-      } else {
-        window.location.href = '/payment/failed'
+        submittingRef.current = false
       }
     }
-  }
 
-  useEffect(() => {
-    const status = searchParams?.get('status')
-    const ref = searchParams?.get('reference') ?? searchParams?.get('trxref')
-    
-    if (ref && (status === 'success' || !status)) {
-      if (processedRefs.current.has(ref)) return
-      processedRefs.current.add(ref)
-      verifyPayment(ref)
-    } else if (status === 'cancelled' || status === 'failed' || status === 'abandoned') {
-      setProcessing(false)
-      if (status === 'cancelled' || status === 'abandoned') {
-        window.location.href = '/payment/cancelled'
-      } else {
-        window.location.href = '/payment/failed'
-      }
-    } else if (searchParams?.toString()) {
-      setProcessing(false)
-      if (!ref) window.location.href = '/payment/failed'
-    }
-  }, [searchParams])
+   const verifyPayment = async (ref: string) => {
+     setProcessing(true)
+     setVerificationTimeout(false)
+     
+     const timeoutPromise = new Promise((_, reject) => {
+       setTimeout(() => reject(new Error('Verification timeout')), 10000)
+     })
 
-  useEffect(() => {
-    if (processing && !verificationTimeout) {
-      const timer = setTimeout(() => {
-        setProcessingScreenTimeout(true)
-      }, 8000)
-      return () => clearTimeout(timer)
-    }
-  }, [processing, verificationTimeout])
+     try {
+       const response = await Promise.race([
+         fetch('/api/payment/verify', {
+           method: 'POST',
+           headers: { 'Content-Type': 'application/json' },
+           body: JSON.stringify({ reference: ref }),
+         }),
+         timeoutPromise,
+       ]) as Response
 
-const subtotal = contextCart?.total ?? 0
-   const total = subtotal
+       if (!response.ok) {
+         setProcessing(false)
+         const data = await response.json()
+         const redirectUrl = data.status === 'cancelled' || data.status === 'abandoned'
+           ? `/payment/cancelled?orderId=${data.orderId ?? ''}`
+           : '/payment/failed'
+         window.location.href = redirectUrl
+         return
+       }
+
+       const data = await response.json()
+       
+       if (data.success) {
+         dispatchCartUpdate()
+         window.location.href = `/payment/success?orderId=${data.orderId}`
+       } else if (data.status === 'cancelled' || data.status === 'abandoned' || data.status === 'failed') {
+         setProcessing(false)
+         if (data.status === 'cancelled' || data.status === 'abandoned') {
+           window.location.href = `/payment/cancelled?orderId=${data.orderId ?? ''}`
+         } else {
+           window.location.href = '/payment/failed'
+         }
+       } else {
+         setProcessing(false)
+         window.location.href = '/payment/failed'
+       }
+     } catch (error) {
+       setProcessing(false)
+       if (error instanceof Error && error.message === 'Verification timeout') {
+         setVerificationTimeout(true)
+       } else {
+         window.location.href = '/payment/failed'
+       }
+     }
+   }
+
+   useEffect(() => {
+     const status = searchParams?.get('status')
+     const ref = searchParams?.get('reference') ?? searchParams?.get('trxref')
+     
+     if (ref && (status === 'success' || !status)) {
+       if (processedRefs.current.has(ref)) return
+       processedRefs.current.add(ref)
+       verifyPayment(ref)
+     } else if (status === 'cancelled' || status === 'failed' || status === 'abandoned') {
+       setProcessing(false)
+       if (status === 'cancelled' || status === 'abandoned') {
+         window.location.href = '/payment/cancelled'
+       } else {
+         window.location.href = '/payment/failed'
+       }
+     } else if (searchParams?.toString()) {
+       setProcessing(false)
+       if (!ref) window.location.href = '/payment/failed'
+     }
+   }, [searchParams])
+
+   useEffect(() => {
+     if (processing && !verificationTimeout) {
+       const timer = setTimeout(() => {
+         setProcessingScreenTimeout(true)
+       }, 8000)
+       return () => clearTimeout(timer)
+     }
+   }, [processing, verificationTimeout])
+
    const totalQuantity = contextCart?.items?.reduce((sum, item) => sum + item.quantity, 0) ?? 0
-const availableRegions = useMemo(() => getAvailableRegions(), [])
+   const availableRegions = useMemo(() => getAvailableRegions(), [])
 
    if (processing) {
+     if (verificationTimeout || processingScreenTimeout) {
+       return (
+         <div className="min-h-screen bg-slate-50 py-12 overflow-x-hidden">
+           <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 w-full max-w-full">
+             <Card variant="elevated" className="max-w-md mx-auto">
+               <CardContent className="py-12 text-center">
+                 <div className="w-16 h-16 rounded-full bg-slate-200 flex items-center justify-center mx-auto mb-6">
+                   <svg className="w-8 h-8 text-slate-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+                   </svg>
+                 </div>
+                 <h3 className="text-xl font-semibold text-deep-navy mb-2">
+                   Payment Verification Taking Too Long
+                 </h3>
+                 <p className="text-slate-600 mb-6">
+                   We could not confirm your payment status. Please check your orders or return to cart.
+                 </p>
+                 <div className="space-y-3">
+                   <Link href="/dashboard/customer/orders">
+                     <Button size="lg" className="w-full">
+                       Check My Orders
+                     </Button>
+                   </Link>
+                   <Link href="/cart">
+                     <Button variant="outline" size="lg" className="w-full">
+                       Return to Cart
+                     </Button>
+                   </Link>
+                 </div>
+               </CardContent>
+             </Card>
+           </div>
+         </div>
+       )
+     }
+
+     return (
+       <div className="min-h-screen bg-slate-50 py-12 overflow-x-hidden">
+         <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 w-full max-w-full">
+           <Card variant="elevated" className="max-w-md mx-auto">
+             <CardContent className="py-12 text-center">
+               <div className="w-16 h-16 rounded-full bg-gradient-to-br from-royal-blue to-purple-600 flex items-center justify-center mx-auto mb-6 animate-pulse">
+                 <svg className="w-8 h-8 text-white animate-spin" fill="none" viewBox="0 0 24 24">
+                   <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                   <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                 </svg>
+               </div>
+               <h3 className="text-xl font-semibold text-deep-navy mb-2">
+                 {paymentStatus ? 'Verifying payment...' : 'Processing your payment...'}
+               </h3>
+               <p className="text-slate-600">Please wait while we confirm your payment.</p>
+             </CardContent>
+           </Card>
+         </div>
+       </div>
+     )
+   }
+
+   if (!contextCart || contextCart.items.length === 0) {
     if (verificationTimeout || processingScreenTimeout) {
       return (
         <div className="min-h-screen bg-slate-50 py-12 overflow-x-hidden">
@@ -738,7 +883,26 @@ const availableRegions = useMemo(() => getAvailableRegions(), [])
             <div className="lg:sticky lg:top-28 space-y-4">
               <OrderSummaryDesktop items={contextCart.items} subtotal={subtotal} />
               <div className="hidden lg:block">
-                <PaymentSummaryDesktop total={total} subtotal={subtotal} processing={processing} onCheckout={handleCheckout} />
+                <PaymentSummaryDesktop 
+                  total={finalTotal} 
+                  subtotal={subtotal} 
+                  processing={processing} 
+                  onCheckout={handleCheckout}
+                  walletBalance={walletBalance}
+                  useWalletBalance={useWalletBalance}
+                  effectiveWalletAmount={effectiveWalletAmount}
+                  onToggleWallet={() => {
+                    setUseWalletBalance(prev => {
+                      if (!prev) {
+                        setWalletAmount(Math.min(walletBalance, subtotal))
+                      } else {
+                        setWalletAmount(0)
+                      }
+                      return !prev
+                    })
+                  }}
+                  onWalletAmountChange={setWalletAmount}
+                />
               </div>
             </div>
           </div>
@@ -758,7 +922,13 @@ const availableRegions = useMemo(() => getAvailableRegions(), [])
 
       {/* Mobile sticky Place Order button */}
       <div className="fixed bottom-0 left-0 right-0 bg-white border-t border-slate-200 p-4 lg:hidden z-50 shadow-lg">
-        <PaymentSummaryMobile total={total} processing={processing} onCheckout={handleCheckout} />
+        <PaymentSummaryMobile 
+          total={finalTotal} 
+          subtotal={subtotal} 
+          processing={processing} 
+          onCheckout={handleCheckout}
+          effectiveWalletAmount={effectiveWalletAmount}
+        />
       </div>
     </div>
   )

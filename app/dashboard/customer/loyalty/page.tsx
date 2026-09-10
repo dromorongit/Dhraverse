@@ -5,15 +5,18 @@ import Link from 'next/link'
 import { Card, CardHeader, CardContent } from '@/components/Card'
 import { Button } from '@/components/Button'
 import { Badge } from '@/components/Badge'
+import { Input } from '@/components/Input'
 import { LoyaltyTierCard } from '@/components/loyalty/LoyaltyTierCard'
 import { PointsCard } from '@/components/loyalty/PointsCard'
 import { CashbackCard } from '@/components/loyalty/CashbackCard'
+import { WalletCard } from '@/components/loyalty/WalletCard'
 import { AchievementBadge } from '@/components/loyalty/AchievementBadge'
 import { ReferralStatsCard } from '@/components/loyalty/ReferralStatsCard'
 
 interface LoyaltyDashboardData {
   pointsBalance: { userId: string; balance: number; totalEarned: number; totalRedeemed: number }
   cashbackBalance: { userId: string; balance: number; totalEarned: number; totalRedeemed: number }
+  walletBalance: number
   tier: { id: string; name: string; slug: string; color: string; minPoints: number; maxPoints: number | null; multiplier: number; cashbackRate: number; description: string | null } | null
   achievements: Array<{
     achievement: { id: string; name: string; slug: string; description: string | null; badge: string | null; color: string | null; icon: string | null; criteria: any; points: number; cashbackReward: number; isActive: boolean }
@@ -45,6 +48,15 @@ export default function LoyaltyDashboardPage() {
   const [data, setData] = useState<LoyaltyDashboardData | null>(null)
   const [loading, setLoading] = useState(true)
   const [activeTab, setActiveTab] = useState('overview')
+
+  const [pointsRedeemAmount, setPointsRedeemAmount] = useState('')
+  const [cashbackRedeemAmount, setCashbackRedeemAmount] = useState('')
+  const [pointsError, setPointsError] = useState<string | null>(null)
+  const [cashbackError, setCashbackError] = useState<string | null>(null)
+  const [pointsSuccess, setPointsSuccess] = useState<string | null>(null)
+  const [cashbackSuccess, setCashbackSuccess] = useState<string | null>(null)
+  const [redeemingPoints, setRedeemingPoints] = useState(false)
+  const [redeemingCashback, setRedeemingCashback] = useState(false)
 
   useEffect(() => {
     fetchLoyaltyData()
@@ -78,6 +90,79 @@ export default function LoyaltyDashboardPage() {
       console.error('Error earning points:', error)
     }
   }
+
+  const handlePointsRedeem = async () => {
+    if (!data) return
+    setPointsError(null)
+    setPointsSuccess(null)
+    setRedeemingPoints(true)
+
+    try {
+      const amount = parseInt(pointsRedeemAmount, 10)
+      if (isNaN(amount) || amount <= 0) {
+        setPointsError('Please enter a valid number of points')
+        setRedeemingPoints(false)
+        return
+      }
+
+      const res = await fetch('/api/loyalty/redeem/points', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ amount }),
+      })
+
+      const result = await res.json()
+      if (!res.ok) {
+        setPointsError(result.error || 'Redemption failed')
+      } else {
+        setPointsSuccess(`Successfully redeemed ${amount} points for GH₵${result.cedisReceived.toFixed(2)}`)
+        setPointsRedeemAmount('')
+        fetchLoyaltyData()
+      }
+    } catch (error) {
+      setPointsError('An error occurred. Please try again.')
+    } finally {
+      setRedeemingPoints(false)
+    }
+  }
+
+  const handleCashbackRedeem = async () => {
+    if (!data) return
+    setCashbackError(null)
+    setCashbackSuccess(null)
+    setRedeemingCashback(true)
+
+    try {
+      const amount = parseFloat(cashbackRedeemAmount)
+      if (isNaN(amount) || amount <= 0) {
+        setCashbackError('Please enter a valid amount')
+        setRedeemingCashback(false)
+        return
+      }
+
+      const res = await fetch('/api/loyalty/redeem/cashback', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ amount }),
+      })
+
+      const result = await res.json()
+      if (!res.ok) {
+        setCashbackError(result.error || 'Redemption failed')
+      } else {
+        setCashbackSuccess(`Successfully redeemed GH₵${amount.toFixed(2)} cashback to wallet`)
+        setCashbackRedeemAmount('')
+        fetchLoyaltyData()
+      }
+    } catch (error) {
+      setCashbackError('An error occurred. Please try again.')
+    } finally {
+      setRedeemingCashback(false)
+    }
+  }
+
+  const maxPointsRedeem = data ? Math.floor(data.pointsBalance.balance / 1000) * 1000 : 0
+  const pointsCedisEquivalent = data && pointsRedeemAmount ? Math.round((parseInt(pointsRedeemAmount, 10) / 100) * 100) / 100 : 0
 
   if (loading) {
     return (
@@ -148,10 +233,106 @@ export default function LoyaltyDashboardPage() {
                 totalEarned={data.cashbackBalance.totalEarned}
                 totalRedeemed={data.cashbackBalance.totalRedeemed}
               />
+              <WalletCard
+                balance={data.walletBalance}
+              />
               <LoyaltyTierCard
                 tier={data.tier}
                 points={data.pointsBalance.balance}
               />
+            </div>
+
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              <ReferralStatsCard
+                totalReferrals={data.referralStats.totalReferrals}
+                successfulReferrals={data.referralStats.successfulReferrals}
+                pendingReferrals={data.referralStats.pendingReferrals}
+                totalRewardPoints={data.referralStats.totalRewardPoints}
+                totalRewardCashback={data.referralStats.totalRewardCashback}
+                referralCode={data.referralCode || 'REF-YOUR-CODE'}
+              />
+
+              <Card>
+                <CardHeader>
+                  <h3 className="font-semibold text-deep-navy">Redeem to Wallet</h3>
+                </CardHeader>
+                <CardContent>
+                  <div className="space-y-6">
+                    <div>
+                      <h4 className="text-sm font-medium text-gray-700 mb-2">Redeem Points</h4>
+                      <p className="text-xs text-gray-500 mb-2">Minimum 1,000 points = GH₵10.00 (100 points = GH₵1.00)</p>
+                      {data.pointsBalance.balance < 1000 && (
+                        <p className="text-xs text-gray-400 mb-2">You need at least 1,000 points to redeem</p>
+                      )}
+                      <div className="flex gap-2">
+                        <Input
+                          type="number"
+                          placeholder="Points (min 1,000)"
+                          value={pointsRedeemAmount}
+                          onChange={(e) => setPointsRedeemAmount(e.target.value)}
+                          disabled={data.pointsBalance.balance < 1000 || redeemingPoints}
+                          min={1000}
+                          max={data.pointsBalance.balance}
+                          step={1000}
+                          className="flex-1"
+                        />
+                        <Button
+                          onClick={handlePointsRedeem}
+                          disabled={data.pointsBalance.balance < 1000 || !pointsRedeemAmount || redeemingPoints}
+                          className="whitespace-nowrap"
+                        >
+                          {redeemingPoints ? 'Redeeming...' : 'Redeem'}
+                        </Button>
+                      </div>
+                      {pointsRedeemAmount && parseInt(pointsRedeemAmount, 10) >= 1000 && (
+                        <p className="text-xs text-purple-600 mt-1">
+                          You will receive: GH₵{pointsCedisEquivalent.toFixed(2)}
+                        </p>
+                      )}
+                      {pointsError && (
+                        <p className="text-sm text-rose-600 mt-1">{pointsError}</p>
+                      )}
+                      {pointsSuccess && (
+                        <p className="text-sm text-green-600 mt-1">{pointsSuccess}</p>
+                      )}
+                    </div>
+
+                    <div>
+                      <h4 className="text-sm font-medium text-gray-700 mb-2">Redeem Cashback</h4>
+                      <p className="text-xs text-gray-500 mb-2">Minimum GH₵10.00 cashback</p>
+                      {data.cashbackBalance.balance < 10 && (
+                        <p className="text-xs text-gray-400 mb-2">You need at least GH₵10.00 cashback to redeem</p>
+                      )}
+                      <div className="flex gap-2">
+                        <Input
+                          type="number"
+                          placeholder="Amount (min 10.00)"
+                          value={cashbackRedeemAmount}
+                          onChange={(e) => setCashbackRedeemAmount(e.target.value)}
+                          disabled={data.cashbackBalance.balance < 10 || redeemingCashback}
+                          min={10}
+                          max={data.cashbackBalance.balance}
+                          step={0.01}
+                          className="flex-1"
+                        />
+                        <Button
+                          onClick={handleCashbackRedeem}
+                          disabled={data.cashbackBalance.balance < 10 || !cashbackRedeemAmount || redeemingCashback}
+                          className="whitespace-nowrap"
+                        >
+                          {redeemingCashback ? 'Redeeming...' : 'Redeem'}
+                        </Button>
+                      </div>
+                      {cashbackError && (
+                        <p className="text-sm text-rose-600 mt-1">{cashbackError}</p>
+                      )}
+                      {cashbackSuccess && (
+                        <p className="text-sm text-green-600 mt-1">{cashbackSuccess}</p>
+                      )}
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
             </div>
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">

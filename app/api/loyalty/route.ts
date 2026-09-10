@@ -29,6 +29,7 @@ export async function GET(request: NextRequest) {
           profileCompletionRewarded: true,
           followVendorRewardClaimed: true,
           lastWishlistRewardAt: true,
+          walletBalance: true,
         },
       }),
       getPrisma().user.findUnique({
@@ -40,6 +41,7 @@ export async function GET(request: NextRequest) {
     return NextResponse.json({
       pointsBalance,
       cashbackBalance,
+      walletBalance: loyaltyRecord?.walletBalance ?? 0,
       tier,
       achievements,
       referralStats,

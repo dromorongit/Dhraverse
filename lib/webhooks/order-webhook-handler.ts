@@ -237,6 +237,28 @@ export async function handleOrderWebhook(body: string, signature: string | undef
       }
     }
 
+    if (order && order.walletAmountApplied && order.walletAmountApplied > 0) {
+      await getPrisma().$transaction(async (tx: any) => {
+        await tx.customerLoyalty.update({
+          where: { userId: payment.userId },
+          data: {
+            walletBalance: { decrement: order.walletAmountApplied },
+          },
+        })
+
+        await tx.rewardRedemption.create({
+          data: {
+            userId: payment.userId,
+            type: 'MIXED',
+            amount: order.walletAmountApplied,
+            orderId: payment.orderId,
+            description: `Wallet balance applied to order #${payment.orderId.slice(0, 8)}`,
+            status: 'COMPLETED',
+          },
+        })
+      })
+    }
+
     recordFulfillmentEvent(payment.orderId, 'PAYMENT_CONFIRMED').catch(err => {
       console.error('Failed to record payment confirmed event:', err)
     })

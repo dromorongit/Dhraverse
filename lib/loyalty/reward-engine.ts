@@ -195,3 +195,78 @@ export async function adjustPoints(
 
   return result
 }
+
+export async function redeemPointsToWallet(input: {
+  userId: string
+  amount: number
+  description?: string
+  referenceId?: string
+  referenceType?: string
+}): Promise<any> {
+  const prisma = getPrisma()
+  const { userId, amount, description, referenceId, referenceType } = input
+
+  if (amount < 1000) {
+    throw new Error('Minimum redemption is 1,000 points')
+  }
+
+  const cedis = Math.round((amount / 100) * 100) / 100
+
+  const result = await prisma.$transaction(async (tx) => {
+    const rewardPoints = await tx.rewardPoints.findUnique({
+      where: { userId },
+    })
+
+    if (!rewardPoints) {
+      throw new Error('Reward points account not found')
+    }
+
+    if (rewardPoints.balance < amount) {
+      throw new Error('Insufficient points balance')
+    }
+
+    const updated = await tx.rewardPoints.update({
+      where: { userId },
+      data: {
+        balance: { decrement: amount },
+        totalRedeemed: { increment: amount },
+        updatedAt: new Date(),
+      },
+    })
+
+    const transaction = await tx.rewardTransaction.create({
+      data: {
+        userId,
+        type: TransactionType.REDEEM,
+        category: RewardCategory.COUPON_REDEEM,
+        amount: -amount,
+        balanceAfter: updated.balance,
+        description,
+        referenceId,
+        referenceType,
+      },
+    })
+
+    const loyalty = await tx.customerLoyalty.update({
+      where: { userId },
+      data: {
+        walletBalance: { increment: cedis },
+      },
+    })
+
+    const redemption = await tx.rewardRedemption.create({
+      data: {
+        userId,
+        type: 'POINTS',
+        pointsUsed: amount,
+        amount: cedis,
+        description: description || `Redeemed ${amount} points to wallet`,
+        status: 'COMPLETED',
+      },
+    })
+
+    return { rewardPoints: updated, transaction, loyalty, redemption }
+  })
+
+  return result
+}

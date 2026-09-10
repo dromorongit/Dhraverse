@@ -1,6 +1,6 @@
 import { getPrisma } from '@/lib/prisma'
-import { earnPoints, redeemPoints, getPointsBalance, getPointsHistory, adjustPoints } from './reward-engine'
-import { earnCashback, redeemCashback, getCashbackBalance, getCashbackHistory, getCashbackForOrder } from './cashback-engine'
+import { earnPoints, redeemPoints, getPointsBalance, getPointsHistory, adjustPoints, redeemPointsToWallet } from './reward-engine'
+import { earnCashback, redeemCashback, getCashbackBalance, getCashbackHistory, getCashbackForOrder, redeemCashbackToWallet } from './cashback-engine'
 import { createReferral, completeReferral, claimReferralReward, getReferralStats, getReferralLeaderboard } from './referral-engine'
 import { checkAchievement, unlockAchievement, getUserAchievements } from './achievement-engine'
 import { getCurrentTier, updateTier, addPoints as addTierPoints, getLoyaltyTiers, getLoyaltyConfig, updateLoyaltyConfig } from './tier-engine'
@@ -10,6 +10,7 @@ export const LoyaltyEngine = {
   reward: {
     earnPoints,
     redeemPoints,
+    redeemPointsToWallet,
     getPointsBalance,
     getPointsHistory,
     adjustPoints,
@@ -17,6 +18,7 @@ export const LoyaltyEngine = {
   cashback: {
     earnCashback,
     redeemCashback,
+    redeemCashbackToWallet,
     getCashbackBalance,
     getCashbackHistory,
     getCashbackForOrder,

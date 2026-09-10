@@ -106,6 +106,77 @@ export async function redeemCashback(input: RedeemCashbackInput): Promise<any> {
   return result
 }
 
+export async function redeemCashbackToWallet(input: {
+  userId: string
+  amount: number
+  description?: string
+  referenceId?: string
+  referenceType?: string
+}): Promise<any> {
+  const prisma = getPrisma()
+  const { userId, amount, description, referenceId, referenceType } = input
+
+  if (amount < 10) {
+    throw new Error('Minimum redemption is GH₵10.00')
+  }
+
+  const result = await prisma.$transaction(async (tx) => {
+    const cashback = await tx.cashbackBalance.findUnique({
+      where: { userId },
+    })
+
+    if (!cashback) {
+      throw new Error('Cashback account not found')
+    }
+
+    if (cashback.balance < amount) {
+      throw new Error('Insufficient cashback balance')
+    }
+
+    const updated = await tx.cashbackBalance.update({
+      where: { userId },
+      data: {
+        balance: { decrement: amount },
+        totalRedeemed: { increment: amount },
+        updatedAt: new Date(),
+      },
+    })
+
+    const cashbackTransaction = await tx.cashbackTransaction.create({
+      data: {
+        userId,
+        amount: -amount,
+        source: 'REWARD_REDEMPTION',
+        description,
+        referenceId,
+        referenceType,
+      },
+    })
+
+    const loyalty = await tx.customerLoyalty.update({
+      where: { userId },
+      data: {
+        walletBalance: { increment: amount },
+      },
+    })
+
+    const redemption = await tx.rewardRedemption.create({
+      data: {
+        userId,
+        type: 'CASHBACK',
+        cashbackUsed: amount,
+        amount: amount,
+        description: description || `Redeemed GH₵${amount.toFixed(2)} cashback to wallet`,
+        status: 'COMPLETED',
+      },
+    })
+
+    return { cashback: updated, transaction: cashbackTransaction, loyalty, redemption }
+  })
+
+  return result
+}
+
 export async function getCashbackBalance(userId: string): Promise<CashbackBalanceResult> {
   const prisma = getPrisma()
   const balance = await prisma.cashbackBalance.findUnique({

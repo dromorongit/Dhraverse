@@ -495,6 +495,7 @@ model Order {
   shippingZone          String?
   subtotal              Float?
   tax                   Float?
+  walletAmountApplied   Float?
   orderType             OrderType              @default(NORMAL)
   fulfillmentStatus     OrderFulfillmentStatus @default(PENDING)
   idempotencyKey        String?
@@ -2220,9 +2221,10 @@ model CustomerLoyalty {
   points    Float    @default(0)
   totalPointsEarned Float @default(0)
   totalPointsRedeemed Float @default(0)
-  totalCashbackEarned Float @default(0)
-  totalCashbackRedeemed Float @default(0)
-  lifetimeOrders Int @default(0)
+  totalCashbackEarned       Float    @default(0)
+  totalCashbackRedeemed     Float    @default(0)
+  walletBalance             Float    @default(0)
+  lifetimeOrders            Int       @default(0)
   lifetimeBookings Int @default(0)
   lifetimeReviews Int @default(0)
   lifetimeReferrals Int @default(0)

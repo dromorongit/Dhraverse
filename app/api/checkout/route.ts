@@ -85,27 +85,49 @@ export async function POST(request: NextRequest) {
     }
 
     // Parse customer and shipping info from request
-    const { customerInfo, shippingInfo, idempotencyKey } = await request.json()
+    const { customerInfo, shippingInfo, idempotencyKey, useWalletBalance, walletAmount } = await request.json()
 
-    // Idempotency: only dedupe when client provides a key.
-    // If missing, we still store a fresh key so a later retry that DOES provide one can match.
-    const effectiveIdempotencyKey = idempotencyKey ?? null
-    const storedIdempotencyKey = effectiveIdempotencyKey || crypto.randomUUID()
-    const tenMinutesAgo = new Date(Date.now() - 10 * 60 * 1000)
+    // Calculate subtotal
+    const subtotal = cart.items.reduce(
+      (sum: number, item: any) => sum + (item.product.price * item.quantity), 
+      0
+    )
 
-    let recentOrder = null
-    if (effectiveIdempotencyKey) {
-      recentOrder = await getPrisma().order.findFirst({
-        where: {
-          userId: payload.userId,
-          idempotencyKey: storedIdempotencyKey,
-          createdAt: { gte: tenMinutesAgo },
-        },
-        include: { payment: true },
+    // Wallet balance application
+    let walletAmountApplied = 0
+    if (useWalletBalance || walletAmount) {
+      const loyalty = await getPrisma().customerLoyalty.findUnique({
+        where: { userId: payload.userId },
+        select: { walletBalance: true },
       })
+
+      const availableWallet = loyalty?.walletBalance ?? 0
+      const requestedWallet = typeof walletAmount === 'number' && walletAmount > 0 ? walletAmount : availableWallet
+      walletAmountApplied = Math.max(0, Math.min(requestedWallet, availableWallet, subtotal))
     }
 
+    let effectiveTotal = Math.max(0, subtotal - walletAmountApplied)
+    const fullyCoveredByWallet = effectiveTotal <= 0 && subtotal > 0
+
+    // Idempotency: dedupe requests within a short window.
+    // Always generate a key if the client did not provide one.
+    const effectiveIdempotencyKey = idempotencyKey || crypto.randomUUID()
+    const tenMinutesAgo = new Date(Date.now() - 10 * 60 * 1000)
+
+    const recentOrder = await getPrisma().order.findFirst({
+      where: {
+        userId: payload.userId,
+        idempotencyKey: effectiveIdempotencyKey,
+        createdAt: { gte: tenMinutesAgo },
+      },
+      include: { payment: true },
+    })
+
     if (recentOrder) {
+      const isFullyCoveredByWallet = recentOrder.paymentStatus === 'PAID' &&
+                                     !recentOrder.payment?.paystackRef &&
+                                     recentOrder.walletAmountApplied &&
+                                     recentOrder.walletAmountApplied > 0
       console.log('[Checkout API] Idempotent request detected - returning existing order:', recentOrder.id)
       return NextResponse.json({
         orderId: recentOrder.id,
@@ -122,20 +144,15 @@ export async function POST(request: NextRequest) {
         },
         vendorBreakdown: {},
         idempotent: true,
+        fullyCoveredByWallet: isFullyCoveredByWallet,
       })
     }
 
-    // Calculate subtotal
-    const subtotal = cart.items.reduce(
-      (sum: number, item: any) => sum + (item.product.price * item.quantity), 
-      0
-    )
-    
     // Shipping and tax are always 0 as per business rules
     // Delivery fees are negotiated separately by vendors and delivery partners
     const shippingPrice = 0
     const tax = 0
-    const total = subtotal
+    const total = effectiveTotal
 
     // Generate unique reference for the payment
     const reference = `DHV-${crypto.randomBytes(8).toString('hex').toUpperCase()}`
@@ -193,27 +210,28 @@ export async function POST(request: NextRequest) {
      }
 
 // Create order and payment record in a transaction
-      const orderData: any = {
-        userId: payload.userId,
-        total,
-        status: 'PENDING',
-        paymentStatus: 'PENDING',
-        orderType,
-        fulfillmentStatus,
-        idempotencyKey: effectiveIdempotencyKey,
-        // Store customer info
-       customerFirstName: customerInfo?.firstName || '',
-       customerLastName: customerInfo?.lastName || '',
-       customerEmail: customerInfo?.email || user.email,
-       customerPhone: customerInfo?.phone || '',
-       customerAddress: customerInfo?.address || '',
-       customerCity: customerInfo?.city || '',
-       customerRegion: customerInfo?.region || '',
-       // Store shipping info
-       shippingZone: shippingInfo?.zone || 'Other Locations',
-       shippingDaysMin: shippingInfo?.estimatedDays?.min || 3,
-       shippingDaysMax: shippingInfo?.estimatedDays?.max || 7,
-     }
+       const orderData: any = {
+         userId: payload.userId,
+         total,
+         status: fullyCoveredByWallet ? 'PROCESSING' : 'PENDING',
+         paymentStatus: fullyCoveredByWallet ? 'PAID' : 'PENDING',
+         orderType,
+         fulfillmentStatus: fullyCoveredByWallet ? 'PROCESSING' : fulfillmentStatus,
+         idempotencyKey: effectiveIdempotencyKey,
+         walletAmountApplied: walletAmountApplied > 0 ? walletAmountApplied : undefined,
+         // Store customer info
+        customerFirstName: customerInfo?.firstName || '',
+        customerLastName: customerInfo?.lastName || '',
+        customerEmail: customerInfo?.email || user.email,
+        customerPhone: customerInfo?.phone || '',
+        customerAddress: customerInfo?.address || '',
+        customerCity: customerInfo?.city || '',
+        customerRegion: customerInfo?.region || '',
+        // Store shipping info
+        shippingZone: shippingInfo?.zone || 'Other Locations',
+        shippingDaysMin: shippingInfo?.estimatedDays?.min || 3,
+        shippingDaysMax: shippingInfo?.estimatedDays?.max || 7,
+      }
     
     try {
       orderData.subtotal = subtotal
@@ -237,7 +255,7 @@ export async function POST(request: NextRequest) {
             orderId: order.id,
             amount: total,
             currency: 'GHS',
-            status: 'PENDING',
+            status: fullyCoveredByWallet ? 'PAID' : 'PENDING',
             reference,
           },
         })
@@ -262,6 +280,26 @@ export async function POST(request: NextRequest) {
            })
          }
 
+        if (fullyCoveredByWallet && walletAmountApplied > 0) {
+          await prisma.customerLoyalty.update({
+            where: { userId: payload.userId },
+            data: {
+              walletBalance: { decrement: walletAmountApplied },
+            },
+          })
+
+          await prisma.rewardRedemption.create({
+            data: {
+              userId: payload.userId,
+              type: 'MIXED',
+              amount: walletAmountApplied,
+              orderId: order.id,
+              description: `Wallet balance applied to order #${order.id.slice(0, 8)}`,
+              status: 'COMPLETED',
+            },
+          })
+        }
+
         return { order, payment }
       })
     } catch (dbError) {
@@ -280,25 +318,34 @@ export async function POST(request: NextRequest) {
     }
 
     try {
-      const paystackResponse = await initializePaystackPayment(
-        user.email,
-        total,
-        reference,
-        callbackUrl,
-        {
-          orderId: result.order.id,
-          userId: payload.userId,
-          vendorBreakdown,
-        }
-      )
+      let paystackAuthorizationUrl: string | undefined
+      if (fullyCoveredByWallet) {
+        paystackAuthorizationUrl = undefined
+        console.log('[Checkout API] Order fully covered by wallet - skipping Paystack initialization')
+      } else {
+        const paystackResponse = await initializePaystackPayment(
+          user.email,
+          total,
+          reference,
+          callbackUrl,
+          {
+            orderId: result.order.id,
+            userId: payload.userId,
+            vendorBreakdown,
+            walletAmountApplied,
+          }
+        )
 
-      console.log('[Checkout API] Paystack response received - authorization_url:', paystackResponse.data.authorization_url)
+        console.log('[Checkout API] Paystack response received - authorization_url:', paystackResponse.data.authorization_url)
 
-      // Update payment with Paystack reference
-      await getPrisma().payment.update({
-        where: { id: result.payment.id },
-        data: { paystackRef: paystackResponse.data.reference },
-      })
+        // Update payment with Paystack reference
+        await getPrisma().payment.update({
+          where: { id: result.payment.id },
+          data: { paystackRef: paystackResponse.data.reference },
+        })
+
+        paystackAuthorizationUrl = paystackResponse.data.authorization_url
+      }
 
       // Send order confirmation email (non-blocking, don't fail if email fails)
       const userProfile = await getPrisma().profile.findUnique({
@@ -306,7 +353,7 @@ export async function POST(request: NextRequest) {
       })
       const customerName = userProfile?.firstName || user?.email.split('@')[0] || 'Customer'
       if (await canSendCustomerEmail(payload.userId)) {
-        sendOrderConfirmationEmail(user.email, customerName, result.order.id, total, 'GHS').catch(err => {
+        sendOrderConfirmationEmail(user.email, customerName, result.order.id, subtotal, 'GHS').catch(err => {
           console.error('Failed to send order confirmation email:', err)
         })
       }
@@ -336,29 +383,31 @@ export async function POST(request: NextRequest) {
 
         // Record fulfillment events
        if (orderType === 'PREORDER') {
-         const firstItem = cart.items[0]
-         recordFulfillmentEvent(result.order.id, 'PREORDER_PLACED', payload.userId, {
-           productName: firstItem?.product?.name,
-         }).catch(err => console.error('Failed to record preorder event:', err))
-       } else if (orderType === 'BACKORDER') {
-         const firstItem = cart.items[0]
-         recordFulfillmentEvent(result.order.id, 'BACKORDER_PLACED', payload.userId, {
-           productName: firstItem?.product?.name,
-         }).catch(err => console.error('Failed to record backorder event:', err))
-       }
+        const firstItem = cart.items[0]
+        recordFulfillmentEvent(result.order.id, 'PREORDER_PLACED', payload.userId, {
+          productName: firstItem?.product?.name,
+        }).catch(err => console.error('Failed to record preorder event:', err))
+      } else if (orderType === 'BACKORDER') {
+        const firstItem = cart.items[0]
+        recordFulfillmentEvent(result.order.id, 'BACKORDER_PLACED', payload.userId, {
+          productName: firstItem?.product?.name,
+        }).catch(err => console.error('Failed to record backorder event:', err))
+      }
 
       return NextResponse.json({
         orderId: result.order.id,
         paymentId: result.payment.id,
         reference,
-        authorizationUrl: paystackResponse.data.authorization_url,
+        authorizationUrl: paystackAuthorizationUrl,
         pricing: {
           subtotal,
           shipping: shippingPrice,
           tax,
           total,
+          walletAmountApplied,
         },
         vendorBreakdown,
+        fullyCoveredByWallet: !!fullyCoveredByWallet,
       })
     } catch (paystackError) {
       // If Paystack initialization fails, update payment status to FAILED
