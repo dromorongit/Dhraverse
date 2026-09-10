@@ -159,7 +159,7 @@ export default function VendorProfilePage() {
       fetch('/api/recently-viewed', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ entityType: 'VENDOR', entityId: vendorId }),
+        body: JSON.stringify({ entityType: 'VENDOR', entityId: vendor.id }),
       }).catch(() => {})
     }
   }, [vendorId, vendor])

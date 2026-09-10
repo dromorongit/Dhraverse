@@ -13,6 +13,7 @@ export function VendorFollowButton({ vendorId, initialFollowerCount = 0 }: Vendo
   const [following, setFollowing] = useState(false)
   const [followerCount, setFollowerCount] = useState(initialFollowerCount)
   const [loading, setLoading] = useState(true)
+  const [error, setError] = useState<string | null>(null)
 
   useEffect(() => {
     let cancelled = false
@@ -41,6 +42,7 @@ export function VendorFollowButton({ vendorId, initialFollowerCount = 0 }: Vendo
 
   const toggleFollow = async () => {
     if (loading) return
+    setError(null)
     try {
       const response = await fetch(`/api/vendors/${vendorId}/follow`, {
         method: 'POST',
@@ -51,9 +53,12 @@ export function VendorFollowButton({ vendorId, initialFollowerCount = 0 }: Vendo
         const data = await response.json()
         setFollowing(data.followed)
         setFollowerCount((prev) => (data.followed ? prev + 1 : prev - 1))
+      } else {
+        const data = await response.json().catch(() => ({}))
+        setError(data.error || 'Failed to update follow status')
       }
-    } catch (error) {
-      console.error('Error toggling follow:', error)
+    } catch (err) {
+      setError('Error toggling follow')
     }
   }
 
@@ -69,15 +74,18 @@ export function VendorFollowButton({ vendorId, initialFollowerCount = 0 }: Vendo
   }
 
   return (
-    <div className="flex items-center gap-3">
-      <Button
-        variant={following ? 'primary' : 'outline'}
-        size="sm"
-        onClick={toggleFollow}
-      >
-        {following ? 'Following' : 'Follow'}
-      </Button>
-      <span className="text-sm text-gray-500">{followerCount} followers</span>
+    <div className="flex flex-col items-start gap-2">
+      <div className="flex items-center gap-3">
+        <Button
+          variant={following ? 'primary' : 'outline'}
+          size="sm"
+          onClick={toggleFollow}
+        >
+          {following ? 'Following' : 'Follow'}
+        </Button>
+        <span className="text-sm text-gray-500">{followerCount} followers</span>
+      </div>
+      {error && <p className="text-xs text-red-600">{error}</p>}
     </div>
   )
 }

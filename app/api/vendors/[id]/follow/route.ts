@@ -34,14 +34,18 @@ export async function POST(request: NextRequest, { params }: { params: { id: str
       data: { userId: payload.userId, vendorId },
     })
 
-    const vendor = await getPrisma().user.findUnique({
+    const store = await getPrisma().store.findUnique({
       where: { id: vendorId },
-      select: { profile: { select: { firstName: true } } },
+      select: { userId: true },
     })
+
+    if (!store) {
+      return NextResponse.json({ error: 'Vendor not found' }, { status: 404 })
+    }
 
     await getPrisma().notification.create({
       data: {
-        userId: vendorId,
+        userId: store.userId,
         type: 'FOLLOW_VENDOR',
         title: 'New Follower',
         message: 'A user started following your store',

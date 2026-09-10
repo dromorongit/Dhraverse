@@ -257,15 +257,15 @@ export default function ProductClient({ vendorProducts = [], relatedProducts = [
   }, [product])
 
   useEffect(() => {
-    if (productId) {
+    if (product?.id) {
       fetch('/api/recently-viewed', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ entityType: 'PRODUCT', entityId: productId }),
+        body: JSON.stringify({ entityType: 'PRODUCT', entityId: product.id }),
       }).catch(() => {})
-      addRecentlyViewed(productId)
+      addRecentlyViewed(product.id)
     }
-  }, [productId])
+  }, [product?.id])
 
   const { data: wishlistData } = useQuery({
     queryKey: ['wishlist', 'status', productId],
