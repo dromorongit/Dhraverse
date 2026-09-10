@@ -18,7 +18,7 @@ import { truncateVendorName } from '@/lib/utils'
 import { event } from '@/lib/gtag'
 import { MdVerified } from 'react-icons/md'
 import { getVendorBadgeInfo } from '@/lib/vendor-badge'
-import { handleAuthRedirect, dispatchCartUpdate, logCartRequest } from '@/lib/CartContext'
+import { useCart } from '@/lib/CartContext'
 import {
   HomepageSectionRenderer,
   HomepageSectionSkeleton,
@@ -1192,39 +1192,25 @@ function FeaturedProductsSection({ excludeIds }: { excludeIds?: Set<string> }) {
   const loading = isLoading
 
   const [addingToCart, setAddingToCart] = useState<Set<string>>(new Set())
+  const { addToCart: cartAddToCart } = useCart()
 
    const addToCart = async (productId: string, productName?: string, productPrice?: number) => {
       setAddingToCart(prev => new Set(prev).add(productId))
       try {
-        logCartRequest('POST /api/cart (homepage addToCart)')
-        const response = await fetch('/api/cart', {
-         method: 'POST',
-         headers: { 'Content-Type': 'application/json' },
-         body: JSON.stringify({ productId, quantity: 1 })
-       })
-
-       if (response.status === 401) {
-         handleAuthRedirect()
-         return
-       }
-
-       if (response.ok) {
-         dispatchCartUpdate()
-         if (productName !== undefined && productPrice !== undefined) {
-           event({ action: 'add_to_cart', category: 'ecommerce', label: productName, value: productPrice })
-         }
-         // Could show success toast here
-       }
-     } catch (error) {
-       console.error('Error adding to cart:', error)
-     } finally {
-       setAddingToCart(prev => {
-         const next = new Set(prev)
-         next.delete(productId)
-         return next
-       })
-     }
-   }
+        const success = await cartAddToCart(productId, 1)
+        if (success && productName !== undefined && productPrice !== undefined) {
+          event({ action: 'add_to_cart', category: 'ecommerce', label: productName, value: productPrice })
+        }
+      } catch (error) {
+        console.error('Error adding to cart:', error)
+      } finally {
+        setAddingToCart(prev => {
+          const next = new Set(prev)
+          next.delete(productId)
+          return next
+        })
+      }
+    }
 
   if (loading) {
      return (

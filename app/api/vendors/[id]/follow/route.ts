@@ -79,6 +79,19 @@ export async function GET(request: NextRequest, { params }: { params: { id: stri
     const limit = Math.min(100, Math.max(1, parseInt(request.nextUrl.searchParams.get('limit') || '20') || 20))
 
     const skip = (page - 1) * limit
+
+    const token = request.cookies.get('token')?.value
+    let isFollowing = false
+    if (token) {
+      const payload = await verifyToken(token)
+      if (payload && payload.userId !== vendorId) {
+        const existing = await getPrisma().vendorFollow.findFirst({
+          where: { userId: payload.userId, vendorId },
+        })
+        isFollowing = !!existing
+      }
+    }
+
     const [follows, total] = await Promise.all([
       getPrisma().vendorFollow.findMany({
         where: { vendorId },
@@ -109,6 +122,7 @@ export async function GET(request: NextRequest, { params }: { params: { id: stri
     return NextResponse.json({
       followers: followsWithUsers,
       followerCount: total,
+      isFollowing,
       pagination: { page, limit, total, totalPages },
     })
   } catch (error) {
