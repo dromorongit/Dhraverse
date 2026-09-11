@@ -9,6 +9,34 @@ import { getActiveSponsoredPlacements } from '@/lib/advertising/service'
 
 export const revalidate = 120
 
+interface CacheEntry<T> {
+  data: T
+  timestamp: number
+}
+
+const HOMEPAGE_CACHE_TTL = 60 * 1000
+const homepageCache = new Map<string, CacheEntry<any>>()
+
+function getCachedHomepage(key: string): any | null {
+  const entry = homepageCache.get(key)
+  if (!entry) return null
+  if (Date.now() - entry.timestamp > HOMEPAGE_CACHE_TTL) {
+    homepageCache.delete(key)
+    return null
+  }
+  return entry.data
+}
+
+function setCachedHomepage(key: string, data: any): void {
+  if (homepageCache.size > 100) {
+    const firstKey = homepageCache.keys().next().value
+    if (firstKey !== undefined) {
+      homepageCache.delete(firstKey)
+    }
+  }
+  homepageCache.set(key, { data, timestamp: Date.now() })
+}
+
 interface TrendingWeights {
   recentSales: number
   productViews: number
@@ -86,7 +114,7 @@ async function getAutoRankedProducts(prisma: ReturnType<typeof getPrisma>, setti
         },
       },
     },
-    take: 100,
+    take: 20,
   })
 
   const expiredIds = new Set(
@@ -222,7 +250,7 @@ async function getRankedServicesByPerformance(prisma: ReturnType<typeof getPrism
       _count: { select: { serviceRequests: true } },
     },
     orderBy: { createdAt: 'desc' },
-    take: maxServices || 50,
+    take: maxServices || 20,
   })
 
   const servicesWithScores = services.map((s) => {
@@ -276,7 +304,7 @@ async function getAutoRankedVendors(prisma: ReturnType<typeof getPrisma>): Promi
       },
       profile: true,
     },
-    take: 50,
+    take: 20,
   })
 
   const tierOrder: Record<string, number> = {
@@ -450,7 +478,15 @@ async function fetchActiveAds(prisma: ReturnType<typeof getPrisma>): Promise<Adv
 
 export async function GET(_request: NextRequest) {
   const perf = new PerformanceLogger('GET', _request.url)
+  const cacheKey = 'homepage:public'
   try {
+    const cached = getCachedHomepage(cacheKey)
+    if (cached) {
+      const response = NextResponse.json(cached)
+      response.headers.set('Cache-Control', 'public, s-maxage=60, stale-while-revalidate=300, max-age=30')
+      return response
+    }
+
     const prismaStartTime = perf.markPrismaStart()
     const prisma = getPrisma()
     let sections: any[] = []
@@ -537,7 +573,7 @@ export async function GET(_request: NextRequest) {
             },
           },
         },
-        take: 100,
+        take: 20,
       })
     } catch (e) {
       console.error('[homepage/public] brand.findMany FAILED:', e)
@@ -779,6 +815,7 @@ export async function GET(_request: NextRequest) {
       ads,
     })
     response.headers.set('Cache-Control', 'public, s-maxage=60, stale-while-revalidate=300, max-age=30')
+    setCachedHomepage(cacheKey, { sections: formatted, brands: formattedBrands, ads })
     perf.log()
     return response
   } catch (error) {
@@ -836,7 +873,7 @@ async function resolveAutomaticProducts(prisma: ReturnType<typeof getPrisma> | n
           ],
         },
         select: productSelect,
-        take: 100,
+        take: 20,
       })
 
       const shuffled = products.sort(() => Math.random() - 0.5)

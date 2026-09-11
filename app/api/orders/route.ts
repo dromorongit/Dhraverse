@@ -14,13 +14,20 @@ export async function GET(request: NextRequest) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
 
-    // Get user's orders including all payment statuses
-    // This shows customers their order history including pending, paid, failed, and cancelled orders
+    const url = new URL(request.url)
+    const page = Math.max(parseInt(url.searchParams.get('page') || '1', 10), 1)
+    const limit = Math.min(Math.max(parseInt(url.searchParams.get('limit') || '20', 10), 1), 50)
+    const skip = (page - 1) * limit
+
+    const whereClause: any = {
+      userId: payload.userId,
+      deletedAt: null,
+    }
+
+    const total = await getPrisma().order.count({ where: whereClause })
+
     const orders = await getPrisma().order.findMany({
-      where: { 
-        userId: payload.userId,
-        deletedAt: null, // Exclude soft-deleted orders
-      },
+      where: whereClause,
       include: {
         items: {
           include: {
@@ -35,14 +42,19 @@ export async function GET(request: NextRequest) {
         payment: true,
       },
       orderBy: { createdAt: 'desc' },
+      skip,
+      take: limit,
     })
 
-    return NextResponse.json({ 
+    const totalPages = Math.ceil(total / limit)
+
+    return NextResponse.json({
       orders: orders.map(order => ({
         ...order,
         vendorAccepted: order.vendorAccepted,
         vendorRejected: order.vendorRejected,
-      })) 
+      })),
+      pagination: { page, limit, total, totalPages },
     })
   } catch (error) {
     console.error('Error fetching orders:', error)

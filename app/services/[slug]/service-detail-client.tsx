@@ -334,8 +334,8 @@ export default function ServiceDetail({ serviceId, vendorServices = [] }: Servic
               {allImages.length > 0 ? (
                 <>
                   <div className="relative aspect-square">
-                     <Image
-                       src={allImages[activeGalleryIndex]?.imageUrl || allImages[activeGalleryIndex] || '/assets/images/dhreammarket.png'}
+                      <Image
+                        src={getOptimizedCloudinaryUrl(allImages[activeGalleryIndex]?.imageUrl || allImages[activeGalleryIndex] || 'https://res.cloudinary.com/doqfxvcy2/image/upload/v1789091543/dhream-market/images/leauw2looppm3eeiubws.png')}
                        alt={service.title}
                        className="object-contain"
                        fill

@@ -91,17 +91,20 @@ export default function CustomerOrdersPage() {
   const router = useRouter()
   const [orders, setOrders] = useState<Order[]>([])
   const [loading, setLoading] = useState(true)
+  const [page, setPage] = useState(1)
+  const [totalPages, setTotalPages] = useState(0)
 
   useEffect(() => {
     fetchOrders()
-  }, [])
+  }, [page])
 
   const fetchOrders = async () => {
     try {
-      const response = await fetch('/api/orders')
+      const response = await fetch(`/api/orders?page=${page}&limit=20`)
       if (response.ok) {
         const data = await response.json()
         setOrders(data.orders)
+        setTotalPages(data.pagination?.totalPages ?? 0)
       }
     } catch (error) {
       console.error('Error fetching orders:', error)
@@ -294,6 +297,30 @@ export default function CustomerOrdersPage() {
                 </Link>
               )
             })}
+          </div>
+        )}
+
+        {totalPages > 1 && (
+          <div className="flex items-center justify-between mt-6">
+            <Button
+              variant="outline"
+              size="sm"
+              disabled={page <= 1}
+              onClick={() => setPage(p => p - 1)}
+            >
+              Previous
+            </Button>
+            <span className="text-sm text-slate-600">
+              Page {page} of {totalPages}
+            </span>
+            <Button
+              variant="outline"
+              size="sm"
+              disabled={page >= totalPages}
+              onClick={() => setPage(p => p + 1)}
+            >
+              Next
+            </Button>
           </div>
         )}
 

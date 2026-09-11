@@ -10,3 +10,16 @@ export function getOptimizedCloudinaryUrl(url: string | null | undefined, width:
 
   return url
 }
+
+export function getOptimizedCloudinaryVideoUrl(url: string | null | undefined): string {
+  if (!url) return ''
+  if (!url.includes('res.cloudinary.com') && !url.includes('cloudinary.com')) return url
+
+  const transformation = `q_auto,f_auto`
+
+  if (url.includes('/upload/')) {
+    return url.replace('/upload/', `/upload/${transformation}/`)
+  }
+
+  return url
+}

@@ -84,6 +84,7 @@ import { BLOG_ARTICLES } from '@/lib/blog-content'
 import { collectProductIds } from '@/lib/homepage-product-utils'
 import { isManagedSectionSlug } from '@/lib/homepage-constants'
 import { getBlurDataURL, CARD_IMAGE_SIZES, CARD_IMAGE_SIZES_5COL, CARD_IMAGE_SIZES_3COL, CARD_IMAGE_SIZES_2COL, VENDOR_LOGO_SIZES, HERO_IMAGE_SIZES } from '@/lib/image-utils'
+import { getOptimizedCloudinaryVideoUrl } from '@/lib/cloudinary-image'
 
 interface Category {
   id: string
@@ -160,7 +161,7 @@ export default function Home() {
           className="absolute inset-0 w-full h-full object-cover"
           preload="metadata"
         >
-          <source src="/assets/videos/Homepage.MP4" type="video/mp4" />
+          <source src={getOptimizedCloudinaryVideoUrl('https://res.cloudinary.com/doqfxvcy2/video/upload/v1789091410/dhream-market/videos/fcmhzl7vpvkiadslezii.mp4')} type="video/mp4" />
         </video>
         {/* Overlay gradient for text readability */}
         <div className="absolute inset-0 bg-gradient-to-br from-deep-navy/80 via-royal-blue/70 to-purple-900/60"></div>

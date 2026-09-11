@@ -1,5 +1,6 @@
 import Link from 'next/link'
 import Image from 'next/image'
+import { getOptimizedCloudinaryUrl } from '@/lib/cloudinary-image'
 import { FiInstagram } from 'react-icons/fi'
 import { SiTiktok } from 'react-icons/si'
 import { FaXTwitter } from 'react-icons/fa6'
@@ -19,7 +20,7 @@ export function Footer() {
             <Link href="/" className="flex items-center gap-3 mb-4 group">
               <div className="relative w-10 h-10">
                 <Image
-                  src="/assets/images/dhreammarket.png"
+                  src={getOptimizedCloudinaryUrl('https://res.cloudinary.com/doqfxvcy2/image/upload/v1789091543/dhream-market/images/leauw2looppm3eeiubws.png')}
                   alt="Dhream Market Logo"
                   fill
                   className="object-contain"

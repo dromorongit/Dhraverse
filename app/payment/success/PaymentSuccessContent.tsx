@@ -40,7 +40,7 @@ export default function PaymentSuccessContent() {
 
   const fetchOrder = async () => {
     try {
-      const response = await fetch('/api/orders')
+      const response = await fetch('/api/orders?limit=50')
       if (response.ok) {
         const data = await response.json()
         const foundOrder = data.orders?.find((o: Order) => o.id === orderId)

@@ -95,6 +95,63 @@ export async function uploadImage(
 }
 
 /**
+ * Upload a video file to Cloudinary
+ * @param file - The file to upload (File or Buffer)
+ * @param folder - The Cloudinary folder to upload to
+ * @param mimeType - Optional mime type when uploading a Buffer
+ * @returns Promise<{url: string, publicId: string, secureUrl: string}>
+ */
+export async function uploadVideo(
+  file: File | Buffer,
+  folder: string = 'dhream-market',
+  mimeType?: string
+): Promise<{ url: string; publicId: string; secureUrl: string }> {
+  configureCloudinary();
+
+  const fileName = file instanceof File ? file.name : 'upload';
+  const fileType = mimeType || (file instanceof File ? file.type : '');
+  const fileSize = file instanceof File ? file.size : Buffer.byteLength(file);
+  const buffer = file instanceof File ? Buffer.from(await file.arrayBuffer()) : file;
+
+  return new Promise((resolve, reject) => {
+    const stream = cloudinary.uploader.upload_stream(
+      {
+        folder,
+        resource_type: 'video',
+        allowed_formats: ['mp4', 'mov', 'webm'],
+      },
+      (error, result) => {
+        if (error) {
+          console.error('[Cloudinary] Video upload error:', {
+            error,
+            folder,
+            fileName,
+            fileType,
+            fileSize,
+          });
+          reject(new Error(`Cloudinary video upload failed: ${error.message || JSON.stringify(error)}`));
+        } else if (result) {
+          console.log('[Cloudinary] Video upload success:', {
+            publicId: result.public_id,
+            url: result.secure_url,
+            folder,
+          });
+          resolve({
+            url: result.secure_url,
+            publicId: result.public_id,
+            secureUrl: result.secure_url,
+          });
+        } else {
+          reject(new Error('Cloudinary video upload returned no result'));
+        }
+      }
+    );
+
+    stream.end(buffer);
+  });
+}
+
+/**
  * Upload multiple images
  * @param files - Array of files to upload
  * @param folder - The Cloudinary folder to upload to
@@ -105,6 +162,20 @@ export async function uploadMultipleImages(
   folder: string = 'dhream-market'
 ): Promise<Array<{ url: string; publicId: string; secureUrl: string }>> {
   const uploadPromises = files.map((file) => uploadImage(file, folder));
+  return Promise.all(uploadPromises);
+}
+
+/**
+ * Upload multiple videos
+ * @param files - Array of files to upload
+ * @param folder - The Cloudinary folder to upload to
+ * @returns Promise<Array<{url: string, publicId: string, secureUrl: string}>>
+ */
+export async function uploadMultipleVideos(
+  files: File[],
+  folder: string = 'dhream-market'
+): Promise<Array<{ url: string; publicId: string; secureUrl: string }>> {
+  const uploadPromises = files.map((file) => uploadVideo(file, folder));
   return Promise.all(uploadPromises);
 }
 

@@ -13,7 +13,7 @@ import { Skeleton, SkeletonCard } from '@/components/Skeleton'
 import { formatPrice } from '@/lib/currency'
 import { truncateVendorName } from '@/lib/utils'
 import { getVendorBadgeInfo } from '@/lib/vendor-badge'
-import { getOptimizedCloudinaryUrl } from '@/lib/cloudinary-image'
+import { getOptimizedCloudinaryUrl, getOptimizedCloudinaryVideoUrl } from '@/lib/cloudinary-image'
 import { MdVerified } from 'react-icons/md'
 import { dispatchCartUpdate, handleAuthRedirect, logCartRequest } from '@/lib/CartContext'
 import { event } from '@/lib/gtag'
@@ -767,7 +767,7 @@ function MarketplaceContent() {
           className="absolute inset-0 w-full h-full object-cover"
           preload="metadata"
         >
-          <source src="/assets/videos/marketplace.MOV" type="video/mp4" />
+          <source src={getOptimizedCloudinaryVideoUrl('https://res.cloudinary.com/doqfxvcy2/video/upload/v1789091406/dhream-market/videos/fukhhpfvd6e6zkjh2zws.mov')} type="video/mp4" />
         </video>
         <div className="absolute inset-0">
           <div className="absolute top-0 left-0 w-full h-full bg-gradient-to-tr from-royal-blue/20 to-transparent"></div>
